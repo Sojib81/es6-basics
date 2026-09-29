@@ -12,7 +12,7 @@ var has a function scope, not a block scope.
 
 //Example of Let
 
-let x = 9;
+let y = 9;
 
 /**
  * let is the block scoped version of var, and is limited to the block (or expression) where it is defined.
@@ -22,7 +22,9 @@ let x = 9;
 
 //Example of const
 
-const x = 9;
+const z = 9;
+
+console.log(x, y, z);
 /** 
  * const is a variable that once it has been created, its value can never change.
  * const has a block scope.

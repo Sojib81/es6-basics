@@ -1,6 +1,6 @@
 //before
 
-hello = function () {
+let hello = function () {
   return "Hello react";
 };
 

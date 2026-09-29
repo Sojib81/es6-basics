@@ -31,10 +31,13 @@ function myVehicle(vehicle) {
   const message =
     "My vehicle " +
     vehicle.type +
-    "is a " +
+    " is a " +
     vehicle.color +
+    " " +
     vehicle.brand +
+    " " +
     vehicle.year;
+  console.log(message);
 }
 
 //with destructuring
@@ -47,9 +50,10 @@ const vehicleTwo = {
   year: "2021",
 };
 
-myVehicle(vehicleTwo);
+myVehicleTwo(vehicleTwo);
 
 function myVehicleTwo({ type, color, model, brand }) {
   const message =
     "My " + type + " is a " + color + " " + brand + " " + model + ".";
+  console.log(message);
 }
