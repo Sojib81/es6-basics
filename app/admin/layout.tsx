@@ -26,6 +26,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           items={[
             { href: "/admin/leads", label: "Leads", badge: counts.newBookings },
             { href: "/admin/inbox", label: "Inbox", badge: counts.unreadEnquiries },
+            { href: "/admin/settings", label: "Settings" },
           ]}
         />
         <main className="min-w-0 flex-1 p-4 pb-24 md:p-6">{children}</main>

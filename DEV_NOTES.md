@@ -15,8 +15,9 @@ The **living notes** for this codebase. `BLUEPRINT.md` says *what* to build; thi
 | 2 — Core schema & data layer | ✅ Done (2026-10-02) |
 | 3 — Lead pipeline MVP | ✅ Done (2026-10-02). **This is the "launch ads" version** once Section 4 setup + launch checklist are done |
 | 4 — Full public site & SEO | ✅ Done (2026-10-02) |
-| 5 — Admin settings & templates | ⏭ Next |
-| 6–10 | Not started — see `TASKS.md` |
+| 5 — Admin settings & templates | ✅ Done (2026-10-02) |
+| 6 — Admin leads & inbox (full) | ⏭ Next |
+| 7–10 | Not started — see `TASKS.md` |
 
 Lighthouse mobile after Phase 4 (Worker runtime, local): home 97/100/100/100, vacate service 96/100/100/100, pricing 99/100/100/100, Belmont suburb 97/100/100/100 (perf/a11y/best-practices/SEO).
 
@@ -104,6 +105,12 @@ lib/
                         email.ts (Resend), sms/ (ClickSend, Twilio adapters), context.ts
   auth/access.ts        Cloudflare Access JWT verify + admin lookup (+ local dev bypass)
   auth/admin.ts         requireAdmin() for pages, requireAdminAction() for server actions
+  money-input.ts        exact "$420.50"/"×1.2"/"5%" ⇄ cents/basis points for admin forms
+  pricing-form.ts       pricing config ⇄ editor form + preview samples
+  templates.ts          template metadata, SMS segment counter, Spam Act rules, saveTemplate
+  users.ts              admin users (never deleted; last-owner / self-lockout guards)
+  cron/schedule.ts      cron expression → job names (dependency-free; used by worker.ts)
+  cron/jobs.ts          job implementations (access-note wipe, rate-counter cleanup, …)
   data/content.ts       services, faqs, policies, reviews, media loaders; suburbs from seed
   data/suburbs.ts, suburbs.ts   suburb lookup + indexing rule (≥150 words, unique) + nearby links
   seo/jsonld.ts         LocalBusiness (no address), Service, FAQPage, BreadcrumbList builders
@@ -114,8 +121,14 @@ app/media/[...key]      serves R2 uploads (only keys recorded in the media table
 public/og-default.png   default share image (owner can set their own via seo.ogImageMediaId, Phase 9)
 app/api/public/         booking + enquiry POST endpoints (thin wrappers around lib/leads)
 app/admin/              leads, inbox (+ detail pages), actions.ts (server actions)
+app/admin/settings/     index, [section] (generic flat settings incl. business), pricing, booking, home,
+                        templates (+ [key]), users — each with its own actions.ts
+app/api/cron/[job]      runs one job; requires the CRON_SECRET header (404 otherwise)
+worker.ts               custom Worker entry: OpenNext fetch + scheduled() → /api/cron/<job>
 components/site/        calculator, booking wizard, enquiry form, turnstile, tracking scripts
 components/admin/       nav, thread, ui (status colours)
+components/admin/settings/  generic SimpleSettingsForm (field descriptors), pricing/booking/home/template/users
+                        editors, SaveBar, HistoryPanel, useSettingSaver (audited save via server action)
 components/ui/          form primitives, safe Markdown renderer
 seed/                   settings, admin-users, templates, services, faqs, policies, suburbs — fresh DB only (suburbs: permanent)
 scripts/seed.ts         Prints seed SQL (used by npm run db:seed:*)
@@ -187,9 +200,9 @@ Needs a Cloudflare account on **Workers Paid (US$5/month)**.
    - `RESEND_API_KEY`, `EMAIL_FROM` (e.g. `Business <hello@domain>`), `EMAIL_REPLY_TO` (`hello@domain`)
    - `SMS_PROVIDER` (`clicksend` or `twilio`), `SMS_API_USERNAME`, `SMS_API_KEY`, `SMS_FROM`
    - `CF_ACCESS_TEAM_DOMAIN` (e.g. `yourteam.cloudflareaccess.com`), `CF_ACCESS_AUD` (from step 9)
+   - `CRON_SECRET` — any long random string (≥16 chars), e.g. `openssl rand -hex 24`. Scheduled jobs don't run without it.
    Production must have `ALERTS_MODE=send` (it does, in `wrangler.jsonc`). Missing email/SMS secrets don't break bookings — the message shows as "failed" in the admin thread.
-8. **Owner phones for SMS alerts:** until the Users page exists (Phase 5), set them with
-   `npx wrangler d1 execute DB --remote --command "update admin_users set sms_phone='+614XXXXXXXX' where email='you@x.com'"`.
+8. **Owner phones for SMS alerts:** Admin → Settings → Users → Edit → "Mobile for lead alerts".
 9. **Cloudflare Access (admin login):** Zero Trust dashboard → Access → Applications → Add → Self-hosted.
    - Domain: your site, paths `/admin` and `/api/admin` (one application, two paths).
    - Policy: Allow → Emails → the owners' emails. Login method: One-time PIN.
@@ -239,6 +252,13 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - **2026-10-02 — `about` is a settings key** (heading + markdown body) rather than a new table.
 - **2026-10-02 — Reviews section renders only when published reviews exist** (none seeded). Never seed or invent reviews.
 - **2026-10-02 — Mobile CTA bar hidden on /book and /thank-you** (it competed with the form).
+- **2026-10-02 — Settings editors save through one audited server action** (`saveSettingAction` → Zod → `saveSettingWithHistory`). Flat settings use a descriptor-driven `SimpleSettingsForm` (business, notifications, tracking, SEO, invoicing, about); pricing, booking, home, templates and users have custom editors.
+- **2026-10-02 — Money/multipliers typed by owners are parsed as strings into integers** (`lib/money-input.ts`) — never `parseFloat(x) * 100`.
+- **2026-10-02 — After "Restore", the page does a full reload** (not `router.refresh()`): client editors hold their own state and would otherwise show stale values — and a following Save would silently undo the restore. Remounting editors on every version change was tried and rejected: it wiped the "Saved" confirmation.
+- **2026-10-02 — Spam Act enforced in the template editor:** non-transactional SMS templates can't be saved without `{businessName}` and "STOP". Unknown variables also block saving.
+- **2026-10-02 — Users are deactivated, never deleted** (audit history keeps their email). You can't deactivate/demote yourself; there's always ≥1 active owner. Only the "owner" role is offered in the UI (staff role exists in data, per blueprint).
+- **2026-10-02 — Lead-alert emails come from Settings → Notifications (list of addresses); SMS/push alerts are per user** (Users page). `admin_users.receive_email_alerts` exists in the schema but isn't used.
+- **2026-10-02 — Cron design:** `worker.ts` is the Worker entry (`wrangler.jsonc` `main`). Its `scheduled()` maps the cron expression to job names (`lib/cron/schedule.ts`) and POSTs to `/api/cron/<job>` on the same Worker with `CRON_SECRET`. All job code stays inside the Next app (same aliases, same tests). Staging has `triggers.crons: []`.
 - **2026-10-02 — Prettier ignores `*.md`.** It reflowed the big tables in BLUEPRINT.md into unreadable diffs. Docs are hand-formatted.
 - **2026-10-02 — CI (GitHub Actions) runs typecheck, lint, format, unit tests and the OpenNext build.** Deploying is Workers Builds' job, not CI's.
 
@@ -276,10 +296,17 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - Seed SQL statements can contain newlines (templates) — split with `buildSeedStatements()`, never by `\n`.
 - In D1, `PRAGMA foreign_keys = OFF` is ignored; use `PRAGMA defer_foreign_keys = true` inside the batch.
 
+**Cron:**
+- Add a job: implement in `lib/cron/jobs.ts` + `JOB_HANDLERS`, map it in `lib/cron/schedule.ts`, add the expression to `wrangler.jsonc` `triggers.crons` (UTC, Perth time in a comment). A test fails if a scheduled job has no handler.
+- Try it locally: `npx wrangler dev --test-scheduled` then `curl "http://localhost:8787/__scheduled?cron=0+18+*+*+*"`; output appears in the wrangler log. Needs `CRON_SECRET` in `.dev.vars`.
+
 **Testing:**
 - DB tests: `const t = await createTestDb()` in `beforeAll` (60 s timeout), `t.reset()` + `t.seed()` in `beforeEach`, `t.dispose()` in `afterAll`. See `lib/audit.test.ts`.
 - In containers without Playwright's own browser download, set `PW_CHROMIUM_PATH` to an installed Chromium (e.g. `/opt/pw-browsers/chromium`). The config picks it up.
-- E2E runs against staging or local, **never production** (it creates bookings).
+- E2E runs against staging or local, **never production** (it creates bookings and changes settings).
+- Settings E2E (`e2e/admin-settings.spec.ts`) runs in its own Playwright project *after* the others, because it changes site-wide state (prices). Tests that change settings must put them back exactly as found, and must not assume what "Restore previous version" lands on (it may be a version from an earlier run). Wait for `networkidle` before typing into client forms, or input can be lost to hydration.
+- Don't hard-code prices in E2E; read the calculator's price and check it carries through.
+- When killing dev servers from a script, don't `pkill -f "wrangler dev"` in a shell whose own command line contains that text — it kills itself.
 - Run E2E locally: `npm run db:migrate:local && npm run db:seed:local`, then `npm run dev` (or `npm run preview` for the Worker runtime) and `PW_CHROMIUM_PATH=… E2E_BASE_URL=http://localhost:3000 npm run test:e2e`. The admin part needs `DEV_ADMIN_EMAIL` in `.dev.vars` matching a seeded admin.
 - `vitest.config.mts` is `.mts` on purpose (ESM config without `"type": "module"`).
 
@@ -312,6 +339,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 Newest at the top. One line per task: date, task id, what changed.
 
+- **2026-10-02 — Phase 5 (tasks 5.1–5.9).** Admin settings: index, business info (hours, GST, socials, review link, bank details), pricing editor (grid, extras, multipliers, regular hours, add-ons, live old-vs-new preview), booking settings (deposit, windows, capacity, blocked dates, retention), notifications, home/about/SEO/tracking/invoicing; history + restore everywhere; template editor (variables, preview, SMS parts counter, Spam Act checks, send test to me); users (add/edit/deactivate with lockout guards). Custom Worker entry with Cron Triggers → `/api/cron/<job>` (CRON_SECRET): access-note wipe + rate-counter cleanup. Fixed: emails with stray spaces (phone keyboards) were rejected on public forms and the users page. 176 unit/integration tests + 10 E2E (incl. "owner changes a price on their phone and it's live", 3 stable runs on the Worker runtime).
 - **2026-10-02 — Phase 4 (tasks 4.1–4.7).** Suburb pages + /areas (6 indexed, rest noindex), property managers page (PM pack from media), about (settings key) and FAQ pages; JSON-LD (LocalBusiness, Service, FAQPage, BreadcrumbList); sitemap + robots; default OG image + Twitter cards; reviews + media tables and R2 media route; real-reviews-only section; mobile CTA bar hidden on booking pages. Lighthouse mobile 96–100 on all audited pages. 143 tests + 6 E2E passing on the Worker runtime.
 - **2026-10-02 — Phase 3 (tasks 3.1–3.15).** Pricing engine (all services, 24 tests) + "from" prices; content tables (services/faqs/policies) with seed content and draft policies; public pages (home, service pages, pricing calculator, 6-step booking wizard, quote/contact forms, thank-you, policies, 404); booking & enquiry APIs with burst + daily rate limits, Turnstile, server-side price recalculation, customer matching; notifications (templates, Resend email, ClickSend/Twilio SMS, sandbox mode, quiet hours, message log); tracking tags + UTM capture + conversion events; Cloudflare Access JWT auth; admin leads & inbox (lists, filters, search, detail, status changes with capacity check, notes/call logs). Tests: 137 unit/integration (real D1) + 6 Playwright E2E (phone + desktop, full booking through admin), passing on both `next dev` and the Worker runtime.
 - **2026-10-02 — Phase 2 (tasks 2.1–2.7).** Drizzle schema for all lead tables + first migration; Zod schemas for every settings key; seed JSON + idempotent SQL seed (`npm run db:seed:*`); per-request settings loaders; refs; AU phone helpers; audit/settings-history/restore helpers; customer matching; real-D1 test harness. Home page and site chrome now read business details from D1. Tests: 48 passing. Verified in `next dev` and the Worker runtime (`wrangler dev`) against a seeded local D1.

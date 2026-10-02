@@ -20,7 +20,14 @@ export default defineConfig({
       : undefined,
   },
   projects: [
-    { name: "mobile-chrome", use: { ...devices["Pixel 7"] } },
-    { name: "desktop-chrome", use: { ...devices["Desktop Chrome"] } },
+    { name: "mobile-chrome", use: { ...devices["Pixel 7"] }, testIgnore: /admin-settings/ },
+    { name: "desktop-chrome", use: { ...devices["Desktop Chrome"] }, testIgnore: /admin-settings/ },
+    // Settings tests change shared site-wide state (e.g. prices), so they run alone, after the rest.
+    {
+      name: "admin-settings",
+      use: { ...devices["Pixel 7"] },
+      testMatch: /admin-settings/,
+      dependencies: ["mobile-chrome", "desktop-chrome"],
+    },
   ],
 });

@@ -5,3 +5,5 @@ ALERTS_MODE=log
 # Local-only admin login bypass (Cloudflare Access isn't in front of localhost). Refused elsewhere.
 DEV_ADMIN_EMAIL=owner@example.com
 # Turnstile: leave unset locally (the form sends Cloudflare's dummy token, accepted offline).
+# Shared secret between the Worker cron handler and /api/cron (any long random string).
+CRON_SECRET=local-cron-secret-0123456789

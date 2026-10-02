@@ -15,12 +15,13 @@ test("customer books a vacate clean and the owner handles it in the admin", asyn
   await page.goto("/pricing");
   await page.getByRole("button", { name: "More bedrooms" }).click(); // 2 → 3
   await page.getByRole("button", { name: "More bathrooms" }).click(); // 1 → 2
-  await expect(page.getByTestId("estimate-total")).toHaveText("$420");
+  await expect(page.getByTestId("estimate-total")).toHaveText(/^\$\d/);
+  const price = (await page.getByTestId("estimate-total").textContent())!.trim(); // e.g. "$420"
   await page.getByRole("link", { name: "Book this clean" }).click();
 
   // 2. Wizard — step 1 pre-filled from the calculator
   await expect(page.getByRole("heading", { name: "Your property" })).toBeVisible();
-  await expect(page.getByTestId("estimate-total")).toHaveText("$420");
+  await expect(page.getByTestId("estimate-total")).toHaveText(price);
   await page.getByRole("button", { name: "Continue" }).click();
 
   // who
@@ -50,7 +51,7 @@ test("customer books a vacate clean and the owner handles it in the admin", asyn
   await page.getByRole("button", { name: "Continue" }).click();
 
   // review
-  await expect(page.getByText("$420")).toBeVisible();
+  await expect(page.getByText(price, { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Send booking request" }).click();
   await expect(page.getByText("Please tick to confirm")).toBeVisible();
   await page.getByRole("checkbox").check();
@@ -65,7 +66,7 @@ test("customer books a vacate clean and the owner handles it in the admin", asyn
   await page.goto(`/admin/leads?status=new&q=${ref}`);
   await page.getByRole("link", { name: /Playwright Tester/ }).click();
   await expect(page.getByRole("heading", { name: "Playwright Tester" })).toBeVisible();
-  await expect(page.getByText("$420").first()).toBeVisible();
+  await expect(page.getByText(price, { exact: true }).first()).toBeVisible();
   await expect(
     page
       .getByText("owner_new_booking_email")

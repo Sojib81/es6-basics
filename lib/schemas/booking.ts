@@ -77,7 +77,7 @@ export const bookingRequestSchema = z
     accessNotes: optionalText(500),
     name: trimmed(100).min(2, "Enter your name"),
     phone: auMobile,
-    email: z.email("Enter a valid email").max(200),
+    email: z.string().trim().max(200).pipe(z.email("Enter a valid email")),
     pmName: optionalText(100),
     pmAgency: optionalText(100),
     heardFrom: optionalText(60),
@@ -120,10 +120,12 @@ export const enquiryRequestSchema = z.object({
   name: trimmed(100).min(2, "Enter your name"),
   phone: auPhone,
   email: z
-    .email("Enter a valid email")
+    .string()
+    .trim()
     .max(200)
     .optional()
-    .or(z.literal("").transform(() => undefined)),
+    .transform((v) => v || undefined)
+    .pipe(z.email("Enter a valid email").optional()),
   suburb: optionalText(60),
   agency: optionalText(100),
   serviceInterest: optionalText(60),

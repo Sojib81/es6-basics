@@ -3,7 +3,7 @@
   // D1 databases / R2 buckets and paste their IDs below.
   // IMPORTANT: bindings are NOT inherited by `env.staging` — every binding must be repeated there.
   "$schema": "node_modules/wrangler/config-schema.json",
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "name": "cleaning-site",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -38,12 +38,18 @@
     // Public form APIs: 3 requests / 60 s per key (IP). Binding only supports period 10 or 60.
     { "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } },
   ],
-  // Cron triggers (UTC) are added in Phase 5/6 together with the scheduled() handler.
+  // Cron triggers are UTC (Perth = UTC+8). Keep in sync with lib/cron/schedule.ts.
+  "triggers": {
+    "crons": [
+      "0 18 * * *", // 02:00 Perth — wipe old access notes, clean rate counters
+    ],
+  },
 
   "env": {
     // ---------- staging (previews, E2E tests; never sends real alerts) ----------
     "staging": {
       "name": "cleaning-site-staging",
+      "triggers": { "crons": [] }, // no scheduled jobs on staging
       "vars": {
         "APP_ENV": "staging",
         "ALERTS_MODE": "log",

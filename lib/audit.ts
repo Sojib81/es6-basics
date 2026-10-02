@@ -125,3 +125,17 @@ export async function restoreSetting(
   const result = await saveSettingWithHistory(db, key, row.newValue, actorEmail, "restore");
   return { key, historyId: result.historyId };
 }
+
+/** Recent changes to a setting, newest first (for the "history / restore" panel). */
+export async function listSettingHistory(db: Db, key: SettingKey, limit = 10) {
+  return db
+    .select({
+      id: settingsHistory.id,
+      changedBy: settingsHistory.changedBy,
+      changedAt: settingsHistory.changedAt,
+    })
+    .from(settingsHistory)
+    .where(eq(settingsHistory.key, key))
+    .orderBy(desc(settingsHistory.changedAt), desc(settingsHistory.id))
+    .limit(limit);
+}

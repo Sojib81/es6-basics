@@ -51,19 +51,27 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - [x] 4.7 Lighthouse mobile ≥ 90 on home, service, pricing, suburb pages
 
 ## Phase 5 — Admin settings & templates
-- [ ] 5.1 Settings shell + generic "save setting" action (Zod → saveSettingWithHistory → audit) + "changed by X on date" + restore previous version
-- [ ] 5.2 Business info editor (incl. hours, GST, socials, Google review link, bank details)
-- [ ] 5.3 Pricing editor: bed×bath grid (add/remove rows), multipliers as ×/%, carpets, regular hours, add-ons (add/edit/reorder/activate, services), live preview on sample properties
-- [ ] 5.4 Booking settings (deposit, windows, capacity, notice, blocked dates, access-note retention)
-- [ ] 5.5 Notifications settings (alert emails, SMS/push toggles, customer messages, reminder minutes, quiet hours)
-- [ ] 5.6 Message template editor: variables list, live preview with sample data, SMS character counter, opt-out warning, "Send test to me"
-- [ ] 5.7 Tracking IDs, SEO, home text, about page, invoicing settings editors
-- [ ] 5.8 Users page: add/remove admins, SMS number, alert toggles, Access-policy reminder (can't remove yourself / last owner)
-- [ ] 5.9 Scheduled worker entry (`scheduled()` handler) + access-note wipe cron + rate-counter cleanup
+- [x] 5.1 Settings shell + generic "save setting" action (Zod → saveSettingWithHistory → audit) + "changed by X on date" + restore previous version
+- [x] 5.2 Business info editor (incl. hours, GST, socials, Google review link, bank details)
+- [x] 5.3 Pricing editor: bed×bath grid (add/remove rows), multipliers as ×/%, carpets, regular hours, add-ons (add/edit/reorder/activate, services), live preview on sample properties
+- [x] 5.4 Booking settings (deposit, windows, capacity, notice, blocked dates, access-note retention)
+- [x] 5.5 Notifications settings (alert emails, SMS/push toggles, customer messages, reminder minutes, quiet hours)
+- [x] 5.6 Message template editor: variables list, live preview with sample data, SMS character counter, opt-out warning, "Send test to me"
+- [x] 5.7 Tracking IDs, SEO, home text, about page, invoicing settings editors
+- [x] 5.8 Users page: add/remove admins, SMS number, alert toggles, Access-policy reminder (can't remove yourself / last owner)
+- [x] 5.9 Scheduled worker entry (`scheduled()` handler) + access-note wipe cron + rate-counter cleanup
 
 ## Phase 6 — Admin leads & inbox (full)
-- [ ] 6.1 Web Push spike first (WebCrypto VAPID, iPhone + Android)
-- [ ] Rest: break down at start of phase
+- [ ] 6.1 Web Push: VAPID JWT (ES256) + aes128gcm payload encryption with WebCrypto, tested against RFC 8291 vectors
+- [ ] 6.2 PWA: manifest (scope /admin), service worker (push + notificationclick), "Enable alerts on this device", push_subscriptions table, prune dead endpoints (404/410)
+- [ ] 6.3 Push alerts for new bookings/enquiries alongside SMS/email (respect per-user + global toggles)
+- [ ] 6.4 Dashboard: new leads, unread enquiries, jobs today/tomorrow, average first-response time, needs-attention list, bookings by source this week
+- [ ] 6.5 Booking detail: schedule date/window (with capacity check), set final price, mark paid (cash/transfer), edit customer details from submitted data ("details differ" → update customer)
+- [ ] 6.6 Quick actions: send confirmation (email + SMS), send reminder, request Google review (honours smsOptOut)
+- [ ] 6.7 Reply from admin: email or SMS to the customer from the booking/enquiry thread (template optional); enquiry → "replied"
+- [ ] 6.8 Manual booking (phone orders) and enquiry → booking conversion
+- [ ] 6.9 SMS inbound webhook: STOP/UNSUBSCRIBE → smsOptOut; replies logged to the thread
+- [ ] 6.10 Unanswered-lead reminder cron (every 5 min, business hours, not in quiet hours; once per lead)
 
 ## Phase 7 — Deposits
 - [ ] Break down at start of phase
