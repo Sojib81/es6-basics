@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { formatAuPhone, type BusinessInfo } from "@/lib/data/business";
+import type { BusinessInfo } from "@/lib/data/business";
+import { formatAuPhone } from "@/lib/phone";
 import { mainNav, policyNav } from "./nav";
 
 export function SiteFooter({ business }: { business: BusinessInfo }) {

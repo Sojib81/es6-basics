@@ -17,10 +17,18 @@
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "deploy:staging": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env staging",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:staging": "wrangler d1 migrations apply DB --remote --env staging",
+    "db:migrate:prod": "wrangler d1 migrations apply DB --remote",
+    "db:seed:local": "mkdir -p .wrangler && tsx scripts/seed.ts > .wrangler/seed.sql && wrangler d1 execute DB --local --file .wrangler/seed.sql",
+    "db:seed:staging": "mkdir -p .wrangler && tsx scripts/seed.ts > .wrangler/seed.sql && wrangler d1 execute DB --remote --env staging --file .wrangler/seed.sql",
+    "db:seed:prod": "mkdir -p .wrangler && tsx scripts/seed.ts > .wrangler/seed.sql && wrangler d1 execute DB --remote --file .wrangler/seed.sql"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.7",
+    "drizzle-orm": "^0.45.3",
     "next": "16.3.8",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -32,11 +40,13 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "prettier": "^3.9.9",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.3",
     "wrangler": "^4.146.0"

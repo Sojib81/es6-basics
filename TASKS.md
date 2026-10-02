@@ -14,13 +14,13 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - **Review:** live staging + production URLs; Lighthouse ≥ 90 on placeholder home
 
 ## Phase 2 — Core schema & data layer
-- [ ] 2.1 Drizzle + D1 client; schema for settings, settings_history, customers, bookings, booking_assignees, enquiries, messages, message_templates, admin_users, rate_counters, audit_log; first migration
-- [ ] 2.2 Zod schemas for every settings key (`business`, `pricing` with basis points, `booking`, `notifications`, `tracking`, `seo`, `home`)
-- [ ] 2.3 `/seed/*.json` placeholder data + idempotent seed script (never overwrites rows; writes initial `settings_history` rows with `changedBy = "seed"`)
-- [ ] 2.4 Cached loaders in `lib/data/*` with cache tags; `revalidateTag` helper
-- [ ] 2.5 `lib/refs.ts` (6-char unambiguous alphabet, collision retry) + tests
-- [ ] 2.6 `lib/audit.ts`: `writeAudit()`, `saveSettingWithHistory()` + tests
-- [ ] 2.7 Customer matching (`BLUEPRINT.md` 5.6): match by E.164 phone, never overwrite + tests
+- [x] 2.1 Drizzle + D1 client; schema for settings, settings_history, customers, bookings, booking_assignees, enquiries, messages, message_templates, admin_users, rate_counters, audit_log; first migration
+- [x] 2.2 Zod schemas for every settings key (`business`, `pricing` with basis points, `booking`, `notifications`, `tracking`, `seo`, `home`)
+- [x] 2.3 `/seed/*.json` placeholder data + idempotent seed script (never overwrites rows; writes initial `settings_history` rows with `changedBy = "seed"`)
+- [x] 2.4 Loaders in `lib/data/*` (per-request rendering + React `cache()`; no tag cache needed — see DEV_NOTES decisions)
+- [x] 2.5 `lib/refs.ts` (6-char unambiguous alphabet, collision retry) + tests
+- [x] 2.6 `lib/audit.ts`: `writeAudit()`, `saveSettingWithHistory()` + tests
+- [x] 2.7 Customer matching (`BLUEPRINT.md` 5.6): match by E.164 phone, never overwrite + tests
 - **Review:** a test page reads every setting from D1 on staging
 
 ## Phase 3 — Lead pipeline MVP → launch ads

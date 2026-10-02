@@ -1,0 +1,171 @@
+{
+  "business": {
+    "businessName": "{{BUSINESS_NAME}}",
+    "tagline": "Bond & vacate cleaning in Perth's east and south-east",
+    "phone": "+61400000000",
+    "publicEmail": "hello@example.com",
+    "abn": "00 000 000 000",
+    "gstRegistered": false,
+    "businessHours": {
+      "mon": { "open": "07:00", "close": "18:00" },
+      "tue": { "open": "07:00", "close": "18:00" },
+      "wed": { "open": "07:00", "close": "18:00" },
+      "thu": { "open": "07:00", "close": "18:00" },
+      "fri": { "open": "07:00", "close": "18:00" },
+      "sat": { "open": "08:00", "close": "14:00" },
+      "sun": null
+    },
+    "serviceAreaText": "Belmont, Victoria Park, Cannington and surrounding suburbs",
+    "responsePromise": "We call back within 5 minutes during business hours",
+    "insuranceText": "Fully insured — public liability cover",
+    "socials": { "facebook": "", "instagram": "", "google": "" },
+    "logoMediaId": null,
+    "googleReviewUrl": "",
+    "bankDetails": { "accountName": "", "bsb": "", "accountNumber": "" }
+  },
+  "pricing": {
+    "currency": "AUD",
+    "roundToCents": 500,
+    "minimumChargeCents": 18000,
+    "quoteOnlyAbove": { "bedrooms": 5, "bathrooms": 3 },
+    "vacate": {
+      "matrix": {
+        "1-1": 26000,
+        "2-1": 31000,
+        "2-2": 35000,
+        "3-1": 38000,
+        "3-2": 42000,
+        "4-2": 56000,
+        "4-3": 62000,
+        "5-2": 68000,
+        "5-3": 74000
+      },
+      "extraBathroomCents": 6000,
+      "storeyExtraCents": 4000,
+      "carpetPerRoomCents": 4000,
+      "agentReadyPackage": {
+        "label": "Agent-ready (all carpets included)",
+        "carpetDiscountBp": 500
+      },
+      "conditionMultiplierBp": { "normal": 10000, "heavy": 12000 }
+    },
+    "preSale": { "baseMultiplierBp": 9500 },
+    "regular": {
+      "hourlyCents": 5700,
+      "minHours": 2,
+      "baseHours": 1,
+      "hoursPerBedroom": 0.5,
+      "hoursPerBathroom": 0.5,
+      "conditionMultiplierBp": { "normal": 10000, "heavy": 12500 }
+    },
+    "carpetOnly": { "perRoomCents": 4500, "minimumCents": 12000 },
+    "office": { "quoteOnly": true },
+    "addons": [
+      {
+        "id": "oven",
+        "label": "Oven deep clean",
+        "priceCents": 9000,
+        "services": ["vacate", "preSale", "regular"],
+        "active": true
+      },
+      {
+        "id": "windows-ext",
+        "label": "External windows",
+        "priceCents": 10000,
+        "services": ["vacate", "preSale", "regular"],
+        "active": true
+      },
+      {
+        "id": "walls",
+        "label": "Wall spot cleaning",
+        "priceCents": 6000,
+        "services": ["vacate", "preSale"],
+        "active": true
+      },
+      {
+        "id": "balcony",
+        "label": "Balcony / patio",
+        "priceCents": 4000,
+        "services": ["vacate", "preSale", "regular"],
+        "active": true
+      },
+      {
+        "id": "garage",
+        "label": "Garage sweep & cobwebs",
+        "priceCents": 5000,
+        "services": ["vacate", "preSale"],
+        "active": true
+      },
+      {
+        "id": "fridge",
+        "label": "Inside fridge",
+        "priceCents": 3500,
+        "services": ["vacate", "preSale", "regular"],
+        "active": true
+      },
+      {
+        "id": "blinds",
+        "label": "Blinds (per room)",
+        "priceCents": 2000,
+        "perUnit": true,
+        "services": ["vacate", "preSale"],
+        "active": true
+      }
+    ]
+  },
+  "booking": {
+    "depositEnabled": false,
+    "depositAmountCents": 5000,
+    "timeWindows": [
+      { "id": "am", "label": "Morning (8 am – 12 pm)" },
+      { "id": "pm", "label": "Afternoon (12 pm – 4 pm)" }
+    ],
+    "maxJobsPerWindow": 2,
+    "largeJobBedrooms": 4,
+    "minDaysAhead": 1,
+    "sameDayCutoff": "12:00",
+    "blockedDates": [],
+    "confirmCheckboxText": "I understand my booking is only confirmed after the team calls me.",
+    "accessNoteRetentionDays": 14
+  },
+  "notifications": {
+    "leadAlertEmails": ["owner@example.com"],
+    "smsAlertsEnabled": true,
+    "pushAlertsEnabled": true,
+    "customerSmsEnabled": true,
+    "customerEmailEnabled": true,
+    "unansweredReminderMinutes": 10,
+    "quietHours": { "start": "21:00", "end": "06:30" }
+  },
+  "invoicing": {
+    "nextInvoiceNumber": 1001,
+    "invoicePrefix": "INV-",
+    "paymentTermsDays": 7,
+    "footerText": "Thank you for your business."
+  },
+  "tracking": {
+    "ga4Id": "",
+    "metaPixelId": "",
+    "googleAdsId": "",
+    "googleAdsLeadLabel": "",
+    "googleAdsDepositLabel": ""
+  },
+  "seo": {
+    "titleSuffix": " | {{BUSINESS_NAME}}",
+    "defaultDescription": "Bond, vacate and regular home cleaning in Perth's east and south-east. Instant online prices.",
+    "ogImageMediaId": null
+  },
+  "home": {
+    "heroHeadline": "Bond cleaning that gets your bond back",
+    "heroSubheadline": "Agent-ready vacate cleans across Perth's east and south-east. Instant price online, and we call to confirm.",
+    "trustPoints": ["Agent-ready checklist", "Fully insured", "Free re-clean if the agent asks"],
+    "howItWorks": [
+      { "title": "Get your price", "text": "Answer a few questions and see your price instantly." },
+      {
+        "title": "Request a booking",
+        "text": "Pick a date that suits you. No payment needed to request."
+      },
+      { "title": "We call to confirm", "text": "We call you back quickly to confirm the details." }
+    ]
+  }
+}

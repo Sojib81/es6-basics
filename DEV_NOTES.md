@@ -12,8 +12,9 @@ The **living notes** for this codebase. `BLUEPRINT.md` says *what* to build; thi
 | Phase | State |
 |---|---|
 | 1 — Setup | ✅ Code done (2026-10-02). Waiting on owner: Cloudflare account setup (Section 4) to get live URLs |
-| 2 — Core schema & data layer | ⏭ Next |
-| 3–10 | Not started — see `TASKS.md` |
+| 2 — Core schema & data layer | ✅ Done (2026-10-02) |
+| 3 — Lead pipeline MVP | ⏭ Next |
+| 4–10 | Not started — see `TASKS.md` |
 
 Baseline measured on the Phase 1 placeholder home (local Worker via `wrangler dev`, Lighthouse 12 mobile): **Performance 97, Accessibility 100, Best Practices 96, SEO 100.** Worker bundle: **~1.0 MB gzip** (limit 10 MB on Workers Paid).
 
@@ -33,6 +34,13 @@ npm run preview          # build for Cloudflare + run in local workerd (closest 
 npm run deploy:staging   # build + deploy the staging Worker
 npm run deploy           # build + deploy production (normally done by Workers Builds on push to main)
 npm run cf-typegen       # regenerate cloudflare-env.d.ts — run after ANY wrangler.jsonc change
+
+npm run db:generate      # after editing lib/db/schema.ts → new SQL file in drizzle/ (commit it)
+npm run db:migrate:local # apply migrations to the local D1 (.wrangler/state)
+npm run db:seed:local    # fill a fresh local D1 from seed/*.json (safe to re-run)
+npm run db:migrate:staging / db:migrate:prod   # remote — run BEFORE deploying code that needs them
+npm run db:seed:staging  / db:seed:prod        # first time only (never overwrites, but no reason to re-run)
+npx wrangler d1 execute DB --local --command "select * from settings"   # poke at the local DB
 npm run format           # Prettier (markdown files are excluded on purpose)
 ```
 
@@ -45,6 +53,7 @@ npm run format           # Prettier (markdown files are excluded on purpose)
 | wrangler | 4.x |
 | Tailwind CSS | 4 (CSS-first config in `app/globals.css`, no `tailwind.config.js`) |
 | Zod | 4 |
+| drizzle-orm / drizzle-kit | 0.45 / 0.31 |
 | Vitest / Playwright | 5 / 1.63 |
 
 ---
@@ -61,8 +70,20 @@ components/site/        Public UI (header, footer, mobile bar, nav routes)
 lib/
   config.ts             Runtime vars (APP_ENV, ALERTS_MODE) validated with Zod
   time.ts               Perth time helpers — use these, never raw Date maths for business rules
-  data/business.ts      getBusinessInfo() — STOPGAP reads seed/business.json until Phase 2
-seed/                   JSON used to fill a fresh DB (and suburb pages permanently)
+  phone.ts              AU phone normalise (→ E.164) / format
+  refs.ts               BK-/EQ- reference codes + withUniqueRef() retry
+  audit.ts              readSetting, saveSettingWithHistory, restoreSetting, auditInsert/writeAudit
+  customers.ts          matchOrCreateCustomer (by phone, never overwrites)
+  schemas/settings.ts   Zod schema for EVERY settings key — single source of truth for their shape
+  db/schema.ts          Drizzle schema (all tables)
+  db/client.ts          getDb() for app code, createDb(d1) for tests/scripts
+  db/seed-sql.ts        Builds idempotent seed SQL from seed/*.json
+  db/test-db.ts         Real local D1 for Vitest (createTestDb)
+  data/settings.ts      getSetting(key) — per-request, React cache()
+  data/business.ts      getBusinessInfo()
+seed/                   settings.json, admin-users.json (+ templates.json in Phase 3) — fresh DB only
+scripts/seed.ts         Prints seed SQL (used by npm run db:seed:*)
+drizzle/                Generated SQL migrations (wrangler applies them; don't edit applied ones)
 e2e/                    Playwright specs
 wrangler.jsonc          Cloudflare bindings for production + env.staging
 open-next.config.ts     OpenNext cache config
@@ -78,6 +99,18 @@ env.MEDIA   // R2 (uploads)
 env.RATE_LIMITER
 ```
 For vars, prefer `getRuntimeConfig()` from `lib/config.ts` (validated).
+For the database, use `getDb()` from `lib/db/client.ts` (it also makes the page per-request).
+For settings, use `getSetting("pricing")` etc. from `lib/data/settings.ts` — always validated.
+
+**Writing data — the pattern:**
+```ts
+const db = await getDb();
+await db.batch([
+  db.update(bookings).set({ status: "contacted" }).where(eq(bookings.id, id)),
+  auditInsert(db, { actorEmail, action: "status_change", entity: "booking", entityId: id, before, after }),
+]);
+```
+Settings: `saveSettingWithHistory(db, "pricing", value, actorEmail)` does validate + save + history + audit atomically.
 
 ---
 
@@ -91,24 +124,30 @@ Needs a Cloudflare account on **Workers Paid (US$5/month)**.
    npx wrangler d1 create cleaning-site-db
    npx wrangler d1 create cleaning-site-db-staging
    ```
-3. **Create the R2 buckets:**
+3. **Apply the database schema and seed** (after pasting the IDs):
+   ```bash
+   npm run db:migrate:staging && npm run db:seed:staging
+   npm run db:migrate:prod && npm run db:seed:prod
+   ```
+   Edit `seed/settings.json` and `seed/admin-users.json` with the real business details and owner emails **before** seeding production (or change them later in the admin).
+4. **Create the R2 buckets:**
    ```bash
    npx wrangler r2 bucket create cleaning-site-media
    npx wrangler r2 bucket create cleaning-site-opennext-cache
    npx wrangler r2 bucket create cleaning-site-media-staging
    npx wrangler r2 bucket create cleaning-site-opennext-cache-staging
    ```
-4. **First deploys** (creates both Workers): `npm run deploy:staging`, then `npm run deploy`.
-5. **Auto-deploy (Workers Builds):** Cloudflare dashboard → Workers & Pages → `cleaning-site` → Settings → Builds → connect the GitHub repo.
+5. **First deploys** (creates both Workers): `npm run deploy:staging`, then `npm run deploy`.
+6. **Auto-deploy (Workers Builds):** Cloudflare dashboard → Workers & Pages → `cleaning-site` → Settings → Builds → connect the GitHub repo.
    - Production branch: `main`
    - Build command: `npx opennextjs-cloudflare build`
    - Deploy command: `npx opennextjs-cloudflare deploy`
    - Build variables: every `NEXT_PUBLIC_*` from `.env.example` (they are baked in at build time).
    - Staging: either run `npm run deploy:staging` from a branch, or connect the `cleaning-site-staging` Worker to a `staging` branch with deploy command `npx opennextjs-cloudflare deploy --env staging`. Check the dashboard wording when doing this — Cloudflare renames these screens often.
-6. **Secrets** (added as features need them; never in git, never in the DB):
+7. **Secrets** (added as features need them; never in git, never in the DB):
    `npx wrangler secret put RESEND_API_KEY` (production) and `npx wrangler secret put RESEND_API_KEY --env staging`.
    Full list: `BLUEPRINT.md` Section 14.
-7. **Custom domain:** Worker → Settings → Domains & Routes (Phase 10).
+8. **Custom domain:** Worker → Settings → Domains & Routes (Phase 10).
 
 ---
 
@@ -121,12 +160,17 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - **2026-10-02 — Two Cloudflare environments: production (top level of `wrangler.jsonc`) and `env.staging`.** Separate D1/R2 so tests never touch real data. Worker names: `cleaning-site`, `cleaning-site-staging`.
 - **2026-10-02 — `ALERTS_MODE` must be `log` outside production, enforced in code** (`lib/config.ts` throws). A misconfigured staging can't text the owners.
 - **2026-10-02 — `images.unoptimized: true`.** Avoids paid Cloudflare Images transformations. Admin uploads are resized to WebP in the browser instead (Phase 9). Revisit only if Lighthouse image scores suffer.
-- **2026-10-02 — R2 incremental cache now; D1 tag cache added in Phase 2** with the data loaders (`revalidateTag` after admin saves needs it).
+- **2026-10-02 — Caching: pages that read D1 render per request (no tag cache, no `revalidateTag`).** `getDb()` calls `connection()`; React `cache()` dedupes reads within a request. Why: admin changes must be live "within seconds" and a D1 read is a few ms; tag-cache invalidation on Workers adds moving parts (D1 tag table, cache purge) for little gain at this traffic. Workers Paid includes 25 billion D1 row reads/month. Revisit only if TTFB or cost becomes a problem.
 - **2026-10-02 — Rate limiter binding: 3 requests / 60 s.** The binding only allows a period of 10 or 60 seconds. Daily caps (per phone / per IP) come from D1 in Phase 3.
 - **2026-10-02 — Public site is light-theme only.** Brand consistency; keeps contrast checks simple. Tokens in `app/globals.css`, all pairs AA.
 - **2026-10-02 — Accent colour is orange-700 `#c2410c`, primary teal-700 `#0f766e`.** Placeholders for `{{ACCENT_COLOUR}}` / `{{PRIMARY_COLOUR}}`; chosen because both pass AA with white text. Brighter oranges fail AA.
 - **2026-10-02 — Font: Plus Jakarta Sans via `next/font/google`** (self-hosted at build time, no runtime request to Google).
 - **2026-10-02 — Business data stopgap:** `getBusinessInfo()` reads `seed/business.json` in Phase 1 so components already follow the "no hard-coded data" rule. Phase 2 swaps the function body to D1; the signature stays.
+- **2026-10-02 — IDs are text UUIDs; refs (BK-/EQ-) are separate, 6 chars, no 0/O/1/I/L.** Refs get read out on the phone.
+- **2026-10-02 — Atomic writes use `db.batch([...])`.** D1 has no interactive transactions. Read first, then batch the writes + audit row.
+- **2026-10-02 — Seed is SQL generated from JSON (`INSERT OR IGNORE`), validated by the same Zod schemas as the app.** Re-running can never overwrite owner changes. Each setting gets a `seed-<key>` history row so every booking can reference a pricing version.
+- **2026-10-02 — DB tests run on a real local D1** (`lib/db/test-db.ts`, wrangler `getPlatformProxy`, in-memory). Not better-sqlite3: D1-only features like `batch()` must be tested for real. ~5 s startup per test file.
+- **2026-10-02 — Customer matching uses `INSERT … ON CONFLICT(phone) DO NOTHING` then select.** Safe under concurrent submissions; never updates an existing customer.
 - **2026-10-02 — Prettier ignores `*.md`.** It reflowed the big tables in BLUEPRINT.md into unreadable diffs. Docs are hand-formatted.
 - **2026-10-02 — CI (GitHub Actions) runs typecheck, lint, format, unit tests and the OpenNext build.** Deploying is Workers Builds' job, not CI's.
 
@@ -149,7 +193,15 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - `wrangler deploy` with no `--env` targets **production**.
 - Local `wrangler dev` / `npm run preview` tries to reach `workers.cloudflare.com` for telemetry; failures there are harmless.
 
+**Database (D1 / Drizzle):**
+- Schema change → `npm run db:generate` → commit the new `drizzle/NNNN_*.sql`. Never edit a migration that has been applied anywhere; add a new one.
+- Run remote migrations **before** deploying code that needs them (deploys don't migrate).
+- `settings_history` "current version" = newest `changed_at`. Two saves of the same key in the same millisecond would tie (not a real-world issue, but don't write tests that do it).
+- Booleans are stored as 0/1, JSON columns as text — use the Drizzle schema types, not raw SQL, so they convert.
+- Any page that calls `getDb()` becomes dynamic. That's intended; don't add `generateStaticParams` to DB-backed pages.
+
 **Testing:**
+- DB tests: `const t = await createTestDb()` in `beforeAll` (60 s timeout), `t.reset()` + `t.seed()` in `beforeEach`, `t.dispose()` in `afterAll`. See `lib/audit.test.ts`.
 - In containers without Playwright's own browser download, set `PW_CHROMIUM_PATH` to an installed Chromium (e.g. `/opt/pw-browsers/chromium`). The config picks it up.
 - E2E runs against staging or local, **never production** (it creates bookings).
 - `vitest.config.mts` is `.mts` on purpose (ESM config without `"type": "module"`).
@@ -164,7 +216,9 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 | Item | Where | Needed by |
 |---|---|---|
-| Business name, phone, email, ABN, wording | `seed/business.json` (then admin) | Launch |
+| Business name, phone, email, ABN, hours, wording | `seed/settings.json` → `business`, `home` (then admin) | Before seeding production |
+| Owner admin emails | `seed/admin-users.json` | Before seeding production |
+| Prices | `seed/settings.json` → `pricing` (then admin) | Owner review before launch |
 | Brand colours | `app/globals.css` | Phase 3 |
 | D1 database IDs | `wrangler.jsonc` | First deploy |
 | Domain (`NEXT_PUBLIC_SITE_URL`) | Workers Builds variables | Phase 10 |
@@ -176,5 +230,6 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 Newest at the top. One line per task: date, task id, what changed.
 
+- **2026-10-02 — Phase 2 (tasks 2.1–2.7).** Drizzle schema for all lead tables + first migration; Zod schemas for every settings key; seed JSON + idempotent SQL seed (`npm run db:seed:*`); per-request settings loaders; refs; AU phone helpers; audit/settings-history/restore helpers; customer matching; real-D1 test harness. Home page and site chrome now read business details from D1. Tests: 48 passing. Verified in `next dev` and the Worker runtime (`wrangler dev`) against a seeded local D1.
 - **2026-10-02 — Phase 1 (tasks 1.1–1.6, 1.7 code side).** Next.js 16.3 + TS strict + Tailwind 4 scaffold; OpenNext Cloudflare + `wrangler.jsonc` (production + staging, D1/R2/rate limiter); Zod runtime config with ALERTS_MODE safety rule; Perth time helpers; Vitest (15 tests) + Playwright smoke test (mobile + desktop); design tokens; public layout with header, footer, sticky mobile CTA bar; placeholder home; CI workflow; README and this file. Not done: live URLs (needs Cloudflare account — Section 4).
 - **2026-10-02 — Planning.** Repo cleaned; BLUEPRINT v3.1, CLAUDE.md, TASKS.md added.

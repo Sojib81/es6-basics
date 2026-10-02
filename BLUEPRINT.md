@@ -35,7 +35,7 @@ A fast, mobile-first website for a Perth cleaning business serving the east/sout
 | Environments | `production` + `staging` (separate D1, R2, Stripe test keys, `ALERTS_MODE=log`) | Previews and E2E tests never touch production data or text the owners |
 | Database | Cloudflare D1 + Drizzle ORM + migrations | Source of truth for settings, leads, jobs, invoices, most content. D1 Time Travel: 30 days on paid |
 | Media | Cloudflare R2 | Photos, PM-pack PDFs |
-| Caching | Next.js data cache tags; `revalidateTag()` after admin saves | OpenNext incremental cache (R2) + tag cache (D1). Fallback: dynamic rendering |
+| Caching | **Per-request rendering** for pages that read D1 (`connection()` in `getDb()`), React `cache()` per request | Admin saves are live on the next page load with no invalidation. Revisit with cache tags only if D1 latency or cost becomes a problem (decided 2026-10-02, see DEV_NOTES) |
 | Forms | React Hook Form + Zod (shared client/server schemas) | |
 | Abuse protection | Turnstile + **Workers Rate Limiting binding** (period must be **10 or 60 s**) + **daily caps in D1** | See Section 8 for limits |
 | Email | Resend | Alerts, confirmations, invoices, replies from admin |
@@ -63,7 +63,7 @@ A fast, mobile-first website for a Perth cleaning business serving the east/sout
 3. **One pricing engine:** `lib/pricing.ts` pure function, used everywhere. **Server always recalculates**; never trust a browser price.
 4. **Integer maths only for money.** Cents for amounts; **basis points** (10000 = ×1.0, 500 = 5%) for multipliers and percentages. No floats in pricing. Round once, at the end.
 5. **No arrays in SQL.** Lists are JSON text columns (`text({ mode: 'json' }).$type<...>()`) or join tables.
-6. **Every admin write:** Zod-validated → saved → audit-logged (before/after) → cache revalidated. Settings writes also go to `settings_history` (restorable).
+6. **Every admin write:** Zod-validated → saved → audit-logged (before/after), all in one atomic `db.batch()`. Settings writes also go to `settings_history` (restorable).
 7. **Admin security:** every `/api/admin/*` verifies the Access JWT **and** an active `admin_users` row **and** a same-origin `Origin` header on POST/PUT/PATCH/DELETE. Deny by default.
 8. **Public submissions never overwrite existing customer data.** What the visitor typed is stored on the booking/enquiry; owners merge it into the customer record.
 9. **Privacy:** never ask for lockbox/alarm codes; access notes are wiped automatically (Section 9); SMS alerts never contain access notes or full street addresses.
