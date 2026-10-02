@@ -84,7 +84,7 @@ test("customer books a vacate clean and the owner handles it in the admin", asyn
 test("enquiry form reaches the inbox", async ({ page }) => {
   await page.goto("/quote?type=quote");
   await page.getByLabel("Name").fill("Office Manager");
-  await page.getByLabel("Phone").fill("(08) 9333 1234");
+  await page.getByLabel("Phone").fill(`04${String(Date.now()).slice(-8)}`); // unique: daily per-phone cap is 5
   await page.getByLabel("Message").fill("Small office in Belmont, twice weekly.");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.getByRole("heading", { name: "Message received" })).toBeVisible();

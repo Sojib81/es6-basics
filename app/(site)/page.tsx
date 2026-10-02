@@ -1,12 +1,16 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/site/json-ld";
+import { Reviews } from "@/components/site/reviews";
 import { FaqList, Section } from "@/components/site/section";
+import { siteUrl } from "@/lib/config";
 import { getBusinessInfo } from "@/lib/data/business";
-import { getActiveServices, getFaqs } from "@/lib/data/content";
+import { getActiveServices, getFaqs, getPublishedReviews, getSuburbs } from "@/lib/data/content";
 import { getSetting } from "@/lib/data/settings";
 import { pageMetadata } from "@/lib/data/site";
 import { formatCents } from "@/lib/money";
 import { priceFromCents } from "@/lib/price-from";
+import { faqLd, localBusinessLd } from "@/lib/seo/jsonld";
 
 export async function generateMetadata(): Promise<Metadata> {
   const business = await getBusinessInfo();
@@ -14,16 +18,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [business, home, pricing, services, faqs] = await Promise.all([
+  const [business, home, pricing, services, faqs, reviews] = await Promise.all([
     getBusinessInfo(),
     getSetting("home"),
     getSetting("pricing"),
     getActiveServices(),
     getFaqs(null),
+    getPublishedReviews(),
   ]);
 
   return (
     <>
+      <JsonLd data={localBusinessLd({ business, siteUrl: siteUrl(), suburbs: getSuburbs() })} />
+      <JsonLd data={faqLd(faqs)} />
       <Section tone="brand" className="md:py-24">
         <h1 className="text-ink max-w-3xl text-3xl font-extrabold tracking-tight md:text-5xl">
           {home.heroHeadline}
@@ -99,6 +106,8 @@ export default async function HomePage() {
         </Section>
       )}
 
+      <Reviews reviews={reviews} />
+
       <Section>
         <div className="grid gap-8 md:grid-cols-2">
           <div>
@@ -117,6 +126,9 @@ export default async function HomePage() {
           <div>
             <h2 className="text-ink text-2xl font-bold">Areas we cover</h2>
             <p className="text-muted mt-3">{business.serviceAreaText}.</p>
+            <Link href="/areas" className="text-brand mt-4 inline-block font-semibold underline">
+              See all areas
+            </Link>
           </div>
         </div>
       </Section>

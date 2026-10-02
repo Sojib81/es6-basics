@@ -3,8 +3,8 @@
     "slug": "belmont",
     "name": "Belmont",
     "postcode": "6104",
-    "intro": "",
-    "nearby": [],
+    "intro": "Belmont sits between the Swan River and Perth Airport, with a mix of older brick-and-tile family homes, newer townhouses on subdivided blocks, and units close to Belmont Forum and Great Eastern Highway. Plenty of these homes are rentals, so end-of-lease cleans are a big part of what people need here.\n\nOlder Belmont homes often have more wear to deal with at the final inspection: built-up grease in original kitchens, soap scum in older bathrooms, and dust in window tracks and fly screens. Newer townhouses are usually quicker to clean but tend to have more stairs, more glass and two bathrooms or more, which changes the price.\n\nOur vacate clean follows the checklist property managers use at the final inspection, room by room. Use the calculator below for an instant price for your Belmont property, pick a date that works with your move, and we'll call to confirm the details before anything is locked in.",
+    "nearby": ["redcliffe", "rivervale", "ascot", "kewdale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -13,7 +13,7 @@
     "name": "Redcliffe",
     "postcode": "6104",
     "intro": "",
-    "nearby": [],
+    "nearby": ["belmont", "ascot", "kewdale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -21,8 +21,8 @@
     "slug": "rivervale",
     "name": "Rivervale",
     "postcode": "6103",
-    "intro": "",
-    "nearby": [],
+    "intro": "Rivervale runs along the Swan River near the Graham Farmer Freeway, with a mix of riverside apartments, townhouses and older homes on quieter streets back from Great Eastern Highway. Apartments and townhouses make up a large share of the rentals here.\n\nApartment end-of-lease cleans come with practical things to sort out before the day: booking a lift if the building requires it, arranging visitor parking or a loading bay, and making sure the cleaning team can get in and out of the building. Balconies and large sliding doors are common in Rivervale apartments and are worth adding to your clean if the property manager will check them.\n\nUse the calculator to see your price straight away, including extras like balcony cleaning and carpets. Request a date for your Rivervale property and tell us about any building rules in the notes. We'll call to confirm everything, including access and timing, before your booking is final.",
+    "nearby": ["belmont", "burswood", "lathlain", "kewdale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -30,8 +30,8 @@
     "slug": "victoria-park",
     "name": "Victoria Park",
     "postcode": "6100",
-    "intro": "",
-    "nearby": [],
+    "intro": "Victoria Park is known for the cafés and shops along Albany Highway, and for its streets of character homes, many of them older weatherboard and brick cottages, alongside apartments and units closer to the highway. With plenty of renters and a steady turnover of leases, end-of-lease cleaning is in high demand.\n\nCharacter homes need a careful clean: original timber floors, older windows with tricky tracks, high ceilings with cobwebs, and kitchens and bathrooms that have seen many tenants. Apartments bring their own considerations, such as booking the lift, arranging parking for the cleaning team and checking any building rules about access times.\n\nOur vacate clean works through the property manager's checklist so you're ready for the final inspection. Get an instant price for your Victoria Park home below, request a date that suits your move-out, and we'll call to confirm before anything is final. Carpet steam cleaning can be added if your lease asks for it.",
+    "nearby": ["east-victoria-park", "lathlain", "burswood", "carlisle"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -40,7 +40,7 @@
     "name": "East Victoria Park",
     "postcode": "6101",
     "intro": "",
-    "nearby": [],
+    "nearby": ["victoria-park", "carlisle", "bentley"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -49,7 +49,7 @@
     "name": "Carlisle",
     "postcode": "6101",
     "intro": "",
-    "nearby": [],
+    "nearby": ["lathlain", "east-victoria-park", "kewdale", "rivervale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -57,8 +57,8 @@
     "slug": "cannington",
     "name": "Cannington",
     "postcode": "6107",
-    "intro": "",
-    "nearby": [],
+    "intro": "Cannington is centred on Westfield Carousel and the Cannington train station, with established family homes on larger blocks and a growing number of units and townhouses within walking distance of the shops and transport. That mix means a lot of rentals, and a lot of people moving in and out.\n\nLarger family homes in Cannington often come with extras that need attention at the end of a lease: patios and outdoor areas, garages, more bedrooms with built-in robes, and carpeted living areas. Units and townhouses are smaller but are often let to busy tenants who need the clean done quickly between moving out and handing back the keys.\n\nChoose the add-ons you need, such as an oven deep clean, carpets, or a garage sweep, and the calculator shows your price instantly. Request a date for your Cannington property and we'll call you to confirm the details, the price and access before your booking is final.",
+    "nearby": ["bentley", "east-victoria-park", "kewdale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -67,7 +67,7 @@
     "name": "Kewdale",
     "postcode": "6105",
     "intro": "",
-    "nearby": [],
+    "nearby": ["cloverdale", "belmont", "carlisle", "rivervale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -76,7 +76,7 @@
     "name": "Cloverdale",
     "postcode": "6105",
     "intro": "",
-    "nearby": [],
+    "nearby": ["kewdale", "belmont", "redcliffe"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -84,8 +84,8 @@
     "slug": "burswood",
     "name": "Burswood",
     "postcode": "6100",
-    "intro": "",
-    "nearby": [],
+    "intro": "Burswood is best known for Optus Stadium, the Crown complex and the riverside parklands, and for its newer apartment developments along the river and around the peninsula. Many of these apartments are rented, often to tenants on shorter leases, so end-of-lease cleans come up regularly.\n\nNewer apartments usually have more glass, stone benchtops, modern appliances and balconies, which all need the right products and care to come up clean for the final inspection. Buildings often have rules about when contractors can come and go, lift bookings and where to park, so it helps to check these with your building manager before the day.\n\nGet an instant price for your Burswood apartment below and add extras like balcony or oven cleaning. Request a date, mention any building requirements in your notes, and we'll call to confirm the details before the booking is locked in. Avoid big event days at the stadium if you can, as access and parking get harder.",
+    "nearby": ["victoria-park", "lathlain", "rivervale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -93,8 +93,8 @@
     "slug": "bentley",
     "name": "Bentley",
     "postcode": "6102",
-    "intro": "",
-    "nearby": [],
+    "intro": "Bentley is home to Curtin University and Bentley Technology Park, so a large share of homes here are rented by students and staff. Leases often end around semester breaks, which means a lot of move-outs happening at the same time and tight timeframes between tenants.\n\nShared rentals tend to need a thorough end-of-lease clean: kitchens used by several people, bathrooms that get heavy daily use, and bedrooms with walls and wardrobes to wipe down. If several tenants are moving out together, it helps to agree on one booking and one person to coordinate access with us and the property manager.\n\nOur vacate clean is built around the property manager's inspection checklist, and carpet steam cleaning can be added if the lease requires it. Get your price instantly online for your Bentley rental, request a date that fits your move, and we'll call you to confirm before the booking is locked in. Booking early is a good idea around the end of semester.",
+    "nearby": ["east-victoria-park", "cannington", "carlisle"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -103,7 +103,7 @@
     "name": "Lathlain",
     "postcode": "6100",
     "intro": "",
-    "nearby": [],
+    "nearby": ["victoria-park", "carlisle", "burswood", "rivervale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   },
@@ -112,7 +112,7 @@
     "name": "Ascot",
     "postcode": "6104",
     "intro": "",
-    "nearby": [],
+    "nearby": ["belmont", "redcliffe", "rivervale"],
     "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
     "active": true
   }

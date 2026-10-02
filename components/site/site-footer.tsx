@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { BusinessInfo } from "@/lib/data/business";
 import { formatAuPhone } from "@/lib/phone";
-import { mainNav, policyNav } from "./nav";
+import { mainNav, moreNav, policyNav } from "./nav";
 
 export function SiteFooter({ business }: { business: BusinessInfo }) {
   return (
@@ -15,7 +15,7 @@ export function SiteFooter({ business }: { business: BusinessInfo }) {
         </div>
         <nav aria-label="Footer">
           <ul className="space-y-2">
-            {mainNav.map((item) => (
+            {[...mainNav, ...moreNav].map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="hover:text-brand">
                   {item.label}

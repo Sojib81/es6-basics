@@ -14,8 +14,11 @@ The **living notes** for this codebase. `BLUEPRINT.md` says *what* to build; thi
 | 1 — Setup | ✅ Code done (2026-10-02). Waiting on owner: Cloudflare account setup (Section 4) to get live URLs |
 | 2 — Core schema & data layer | ✅ Done (2026-10-02) |
 | 3 — Lead pipeline MVP | ✅ Done (2026-10-02). **This is the "launch ads" version** once Section 4 setup + launch checklist are done |
-| 4 — Full public site & SEO | ⏭ Next |
-| 5–10 | Not started — see `TASKS.md` |
+| 4 — Full public site & SEO | ✅ Done (2026-10-02) |
+| 5 — Admin settings & templates | ⏭ Next |
+| 6–10 | Not started — see `TASKS.md` |
+
+Lighthouse mobile after Phase 4 (Worker runtime, local): home 97/100/100/100, vacate service 96/100/100/100, pricing 99/100/100/100, Belmont suburb 97/100/100/100 (perf/a11y/best-practices/SEO).
 
 Baseline measured on the Phase 1 placeholder home (local Worker via `wrangler dev`, Lighthouse 12 mobile): **Performance 97, Accessibility 100, Best Practices 96, SEO 100.** Worker bundle: **~1.0 MB gzip** (limit 10 MB on Workers Paid).
 
@@ -31,6 +34,7 @@ npm run dev              # Next dev server, http://localhost:3000 (bindings emul
 npm run check            # typecheck + lint + format:check + unit tests + next build  ← run before every commit
 npm test                 # Vitest unit tests (lib/**/*.test.ts)
 npm run test:e2e         # Playwright; set E2E_BASE_URL (default http://localhost:3000)
+npm run test:e2e:local   # clears local rate-limit counters first (daily caps would otherwise block repeat runs)
 npm run preview          # build for Cloudflare + run in local workerd (closest to production)
 npm run deploy:staging   # build + deploy the staging Worker
 npm run deploy           # build + deploy production (normally done by Workers Builds on push to main)
@@ -100,8 +104,14 @@ lib/
                         email.ts (Resend), sms/ (ClickSend, Twilio adapters), context.ts
   auth/access.ts        Cloudflare Access JWT verify + admin lookup (+ local dev bypass)
   auth/admin.ts         requireAdmin() for pages, requireAdminAction() for server actions
-  data/content.ts       services, faqs, policies loaders; suburbs from seed
-app/(site)/             public pages: home, services/[slug], pricing, book, quote, contact, thank-you, policies/[slug]
+  data/content.ts       services, faqs, policies, reviews, media loaders; suburbs from seed
+  data/suburbs.ts, suburbs.ts   suburb lookup + indexing rule (≥150 words, unique) + nearby links
+  seo/jsonld.ts         LocalBusiness (no address), Service, FAQPage, BreadcrumbList builders
+app/(site)/             public pages: home, services/[slug], pricing, book, quote, contact, thank-you, policies/[slug],
+                        areas, areas/[suburb], property-managers, about, faq
+app/sitemap.ts, robots.ts   sitemap = active services + INDEXABLE suburbs only
+app/media/[...key]      serves R2 uploads (only keys recorded in the media table)
+public/og-default.png   default share image (owner can set their own via seo.ogImageMediaId, Phase 9)
 app/api/public/         booking + enquiry POST endpoints (thin wrappers around lib/leads)
 app/admin/              leads, inbox (+ detail pages), actions.ts (server actions)
 components/site/        calculator, booking wizard, enquiry form, turnstile, tracking scripts
@@ -224,6 +234,11 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - **2026-10-02 — Local admin login bypass `DEV_ADMIN_EMAIL`**, refused by config validation unless `APP_ENV=local`.
 - **2026-10-02 — Opening an unread enquiry marks it read** (audited as that admin).
 - **2026-10-02 — Confirming a booking** schedules it on the preferred date/window (full scheduling UI is Phase 6) and checks weighted capacity; owners can "Confirm anyway".
+- **2026-10-02 — Suburb pages: 6 indexed at launch** (Belmont, Victoria Park, Cannington, Bentley, Rivervale, Burswood) with unique 150+ word intros about the area and its rentals — no invented claims about jobs done. The other 7 have empty intros → `noindex`, not in the sitemap. To index another suburb, write a genuinely local intro in `seed/suburbs.json` (enforced by `isIndexable` + a test). A test also caps launch at 6 — raise it deliberately when adding more.
+- **2026-10-02 — Burst rate limiter skipped when `APP_ENV=local`; staging limit 30/min, production 3/min.** E2E submits from one IP in parallel. Burst behaviour is covered by unit tests; daily caps still apply locally (use `npm run test:e2e:local`).
+- **2026-10-02 — `about` is a settings key** (heading + markdown body) rather than a new table.
+- **2026-10-02 — Reviews section renders only when published reviews exist** (none seeded). Never seed or invent reviews.
+- **2026-10-02 — Mobile CTA bar hidden on /book and /thank-you** (it competed with the form).
 - **2026-10-02 — Prettier ignores `*.md`.** It reflowed the big tables in BLUEPRINT.md into unreadable diffs. Docs are hand-formatted.
 - **2026-10-02 — CI (GitHub Actions) runs typecheck, lint, format, unit tests and the OpenNext build.** Deploying is Workers Builds' job, not CI's.
 
@@ -257,6 +272,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - The booking wizard renders only in the browser (`useSyncExternalStore` gate) so it can read the saved draft synchronously — don't "fix" this with setState in an effect (lint rule `react-hooks/set-state-in-effect`).
 - Template rendering must use `Object.hasOwn` — `{constructor}` once leaked `function Object()` (caught by a test).
 - JSX text with apostrophes needs `&apos;` (lint).
+- The Tailwind Prettier plugin re-orders class names — when scripting edits, match on the current file text, not what you originally wrote.
 - Seed SQL statements can contain newlines (templates) — split with `buildSeedStatements()`, never by `\n`.
 - In D1, `PRAGMA foreign_keys = OFF` is ignored; use `PRAGMA defer_foreign_keys = true` inside the batch.
 
@@ -282,6 +298,8 @@ Newest at the bottom. Format: **date — decision.** Reason.
 | Prices | `seed/settings.json` → `pricing` (then admin) | Owner review before launch |
 | **Policies (privacy, terms, deposit & cancellation, re-clean guarantee)** | `seed/policies.json` — sensible DRAFTS, not legal advice. Re-clean terms (72 h claim window, 48 h return) and the 48 h cancellation rule are placeholders the owner must confirm | Before launch |
 | Service descriptions, checklists, FAQs, home text | `seed/services.json`, `seed/faqs.json`, `seed/settings.json` → `home` — owner to review wording/claims (e.g. "Free re-clean" trust point) | Before launch |
+| About page text | `seed/settings.json` → `about` (contains an "Owner to update" line that shows publicly until replaced) | Before launch |
+| Suburb intros | `seed/suburbs.json` — owner to check local details are accurate | Before launch |
 | Message templates | `seed/templates.json` (editable in admin from Phase 5) | Review before launch |
 | Brand colours | `app/globals.css` | Phase 3 |
 | D1 database IDs | `wrangler.jsonc` | First deploy |
@@ -294,6 +312,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 Newest at the top. One line per task: date, task id, what changed.
 
+- **2026-10-02 — Phase 4 (tasks 4.1–4.7).** Suburb pages + /areas (6 indexed, rest noindex), property managers page (PM pack from media), about (settings key) and FAQ pages; JSON-LD (LocalBusiness, Service, FAQPage, BreadcrumbList); sitemap + robots; default OG image + Twitter cards; reviews + media tables and R2 media route; real-reviews-only section; mobile CTA bar hidden on booking pages. Lighthouse mobile 96–100 on all audited pages. 143 tests + 6 E2E passing on the Worker runtime.
 - **2026-10-02 — Phase 3 (tasks 3.1–3.15).** Pricing engine (all services, 24 tests) + "from" prices; content tables (services/faqs/policies) with seed content and draft policies; public pages (home, service pages, pricing calculator, 6-step booking wizard, quote/contact forms, thank-you, policies, 404); booking & enquiry APIs with burst + daily rate limits, Turnstile, server-side price recalculation, customer matching; notifications (templates, Resend email, ClickSend/Twilio SMS, sandbox mode, quiet hours, message log); tracking tags + UTM capture + conversion events; Cloudflare Access JWT auth; admin leads & inbox (lists, filters, search, detail, status changes with capacity check, notes/call logs). Tests: 137 unit/integration (real D1) + 6 Playwright E2E (phone + desktop, full booking through admin), passing on both `next dev` and the Worker runtime.
 - **2026-10-02 — Phase 2 (tasks 2.1–2.7).** Drizzle schema for all lead tables + first migration; Zod schemas for every settings key; seed JSON + idempotent SQL seed (`npm run db:seed:*`); per-request settings loaders; refs; AU phone helpers; audit/settings-history/restore helpers; customer matching; real-D1 test harness. Home page and site chrome now read business details from D1. Tests: 48 passing. Verified in `next dev` and the Worker runtime (`wrangler dev`) against a seeded local D1.
 - **2026-10-02 — Phase 1 (tasks 1.1–1.6, 1.7 code side).** Next.js 16.3 + TS strict + Tailwind 4 scaffold; OpenNext Cloudflare + `wrangler.jsonc` (production + staging, D1/R2/rate limiter); Zod runtime config with ALERTS_MODE safety rule; Perth time helpers; Vitest (15 tests) + Playwright smoke test (mobile + desktop); design tokens; public layout with header, footer, sticky mobile CTA bar; placeholder home; CI workflow; README and this file. Not done: live URLs (needs Cloudflare account — Section 4).

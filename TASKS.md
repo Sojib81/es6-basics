@@ -42,16 +42,24 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - **Review:** launch checklist (`BLUEPRINT.md` 17) → start ads
 
 ## Phase 4 — Full public site & SEO
-- [ ] 4.1 Suburb pages from seed (intros, nearby links, indexing rules: ≥150-word unique intro, max 6 indexed at launch) + `/areas`
-- [ ] 4.2 Property managers page (PM pack downloads once media exists; enquiry form)
-- [ ] 4.3 About + FAQ pages
-- [ ] 4.4 JSON-LD (LocalBusiness service-area, Service, FAQPage, BreadcrumbList), `sitemap.ts`, `robots.ts`, OG image
-- [ ] 4.5 Reviews + media tables (schema, seed, loaders); reviews section renders only with real published reviews
-- [ ] 4.6 Hide the sticky mobile CTA bar on /book and /thank-you (it competes with the form)
-- [ ] 4.7 Lighthouse mobile ≥ 90 on home, service, pricing, suburb pages
+- [x] 4.1 Suburb pages from seed (intros, nearby links, indexing rules: ≥150-word unique intro, max 6 indexed at launch) + `/areas`
+- [x] 4.2 Property managers page (PM pack downloads once media exists; enquiry form)
+- [x] 4.3 About + FAQ pages
+- [x] 4.4 JSON-LD (LocalBusiness service-area, Service, FAQPage, BreadcrumbList), `sitemap.ts`, `robots.ts`, OG image
+- [x] 4.5 Reviews + media tables (schema, seed, loaders); reviews section renders only with real published reviews
+- [x] 4.6 Hide the sticky mobile CTA bar on /book and /thank-you (it competes with the form)
+- [x] 4.7 Lighthouse mobile ≥ 90 on home, service, pricing, suburb pages
 
 ## Phase 5 — Admin settings & templates
-- [ ] Break down at start of phase
+- [ ] 5.1 Settings shell + generic "save setting" action (Zod → saveSettingWithHistory → audit) + "changed by X on date" + restore previous version
+- [ ] 5.2 Business info editor (incl. hours, GST, socials, Google review link, bank details)
+- [ ] 5.3 Pricing editor: bed×bath grid (add/remove rows), multipliers as ×/%, carpets, regular hours, add-ons (add/edit/reorder/activate, services), live preview on sample properties
+- [ ] 5.4 Booking settings (deposit, windows, capacity, notice, blocked dates, access-note retention)
+- [ ] 5.5 Notifications settings (alert emails, SMS/push toggles, customer messages, reminder minutes, quiet hours)
+- [ ] 5.6 Message template editor: variables list, live preview with sample data, SMS character counter, opt-out warning, "Send test to me"
+- [ ] 5.7 Tracking IDs, SEO, home text, about page, invoicing settings editors
+- [ ] 5.8 Users page: add/remove admins, SMS number, alert toggles, Access-policy reminder (can't remove yourself / last owner)
+- [ ] 5.9 Scheduled worker entry (`scheduled()` handler) + access-note wipe cron + rate-counter cleanup
 
 ## Phase 6 — Admin leads & inbox (full)
 - [ ] 6.1 Web Push spike first (WebCrypto VAPID, iPhone + Android)

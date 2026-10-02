@@ -1,8 +1,16 @@
 /** Content loaders (per request, React cache()). Suburbs are seed-only (BLUEPRINT 5.3). */
 import { cache } from "react";
-import { and, asc, eq, isNull, or } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, or } from "drizzle-orm";
 import { getDb } from "@/lib/db/client";
-import { faqs, policies, services, type ServiceKey } from "@/lib/db/schema";
+import {
+  faqs,
+  media,
+  MEDIA_USAGES,
+  policies,
+  reviews,
+  services,
+  type ServiceKey,
+} from "@/lib/db/schema";
 import { suburbSchema, type Suburb } from "@/lib/schemas/content";
 import suburbsSeed from "@/seed/suburbs.json";
 
@@ -61,3 +69,33 @@ const allSuburbs: Suburb[] = suburbSchema.array().parse(suburbsSeed);
 export function getSuburbs(): Suburb[] {
   return allSuburbs.filter((s) => s.active);
 }
+
+export type ReviewRow = typeof reviews.$inferSelect;
+export type MediaRow = typeof media.$inferSelect;
+
+/** Only real, published reviews (golden rule 10). Empty → the reviews section doesn't render. */
+export const getPublishedReviews = cache(async (limit = 6): Promise<ReviewRow[]> => {
+  const db = await getDb();
+  return db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.published, true))
+    .orderBy(desc(reviews.date))
+    .limit(limit);
+});
+
+export const getMediaByUsage = cache(
+  async (usage: (typeof MEDIA_USAGES)[number]): Promise<MediaRow[]> => {
+    const db = await getDb();
+    return db.select().from(media).where(eq(media.usage, usage)).orderBy(desc(media.createdAt));
+  },
+);
+
+export const getMediaById = cache(async (id: string | null): Promise<MediaRow | null> => {
+  if (!id) return null;
+  const db = await getDb();
+  const [row] = await db.select().from(media).where(eq(media.id, id)).limit(1);
+  return row ?? null;
+});
+
+export const mediaUrl = (m: Pick<MediaRow, "r2Key">) => `/media/${m.r2Key}`;

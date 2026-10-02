@@ -7,27 +7,56 @@
     "abn": "00 000 000 000",
     "gstRegistered": false,
     "businessHours": {
-      "mon": { "open": "07:00", "close": "18:00" },
-      "tue": { "open": "07:00", "close": "18:00" },
-      "wed": { "open": "07:00", "close": "18:00" },
-      "thu": { "open": "07:00", "close": "18:00" },
-      "fri": { "open": "07:00", "close": "18:00" },
-      "sat": { "open": "08:00", "close": "14:00" },
+      "mon": {
+        "open": "07:00",
+        "close": "18:00"
+      },
+      "tue": {
+        "open": "07:00",
+        "close": "18:00"
+      },
+      "wed": {
+        "open": "07:00",
+        "close": "18:00"
+      },
+      "thu": {
+        "open": "07:00",
+        "close": "18:00"
+      },
+      "fri": {
+        "open": "07:00",
+        "close": "18:00"
+      },
+      "sat": {
+        "open": "08:00",
+        "close": "14:00"
+      },
       "sun": null
     },
     "serviceAreaText": "Belmont, Victoria Park, Cannington and surrounding suburbs",
     "responsePromise": "We call back within 5 minutes during business hours",
     "insuranceText": "Fully insured — public liability cover",
-    "socials": { "facebook": "", "instagram": "", "google": "" },
+    "socials": {
+      "facebook": "",
+      "instagram": "",
+      "google": ""
+    },
     "logoMediaId": null,
     "googleReviewUrl": "",
-    "bankDetails": { "accountName": "", "bsb": "", "accountNumber": "" }
+    "bankDetails": {
+      "accountName": "",
+      "bsb": "",
+      "accountNumber": ""
+    }
   },
   "pricing": {
     "currency": "AUD",
     "roundToCents": 500,
     "minimumChargeCents": 18000,
-    "quoteOnlyAbove": { "bedrooms": 5, "bathrooms": 3 },
+    "quoteOnlyAbove": {
+      "bedrooms": 5,
+      "bathrooms": 3
+    },
     "vacate": {
       "matrix": {
         "1-1": 26000,
@@ -47,19 +76,32 @@
         "label": "Agent-ready (all carpets included)",
         "carpetDiscountBp": 500
       },
-      "conditionMultiplierBp": { "normal": 10000, "heavy": 12000 }
+      "conditionMultiplierBp": {
+        "normal": 10000,
+        "heavy": 12000
+      }
     },
-    "preSale": { "baseMultiplierBp": 9500 },
+    "preSale": {
+      "baseMultiplierBp": 9500
+    },
     "regular": {
       "hourlyCents": 5700,
       "minHours": 2,
       "baseHours": 1,
       "hoursPerBedroom": 0.5,
       "hoursPerBathroom": 0.5,
-      "conditionMultiplierBp": { "normal": 10000, "heavy": 12500 }
+      "conditionMultiplierBp": {
+        "normal": 10000,
+        "heavy": 12500
+      }
     },
-    "carpetOnly": { "perRoomCents": 4500, "minimumCents": 12000 },
-    "office": { "quoteOnly": true },
+    "carpetOnly": {
+      "perRoomCents": 4500,
+      "minimumCents": 12000
+    },
+    "office": {
+      "quoteOnly": true
+    },
     "addons": [
       {
         "id": "oven",
@@ -117,8 +159,14 @@
     "depositEnabled": false,
     "depositAmountCents": 5000,
     "timeWindows": [
-      { "id": "am", "label": "Morning (8 am – 12 pm)" },
-      { "id": "pm", "label": "Afternoon (12 pm – 4 pm)" }
+      {
+        "id": "am",
+        "label": "Morning (8 am – 12 pm)"
+      },
+      {
+        "id": "pm",
+        "label": "Afternoon (12 pm – 4 pm)"
+      }
     ],
     "maxJobsPerWindow": 2,
     "largeJobBedrooms": 4,
@@ -135,7 +183,10 @@
     "customerSmsEnabled": true,
     "customerEmailEnabled": true,
     "unansweredReminderMinutes": 10,
-    "quietHours": { "start": "21:00", "end": "06:30" }
+    "quietHours": {
+      "start": "21:00",
+      "end": "06:30"
+    }
   },
   "invoicing": {
     "nextInvoiceNumber": 1001,
@@ -160,12 +211,22 @@
     "heroSubheadline": "Agent-ready vacate cleans across Perth's east and south-east. Instant price online, and we call to confirm.",
     "trustPoints": ["Agent-ready checklist", "Fully insured", "Free re-clean if the agent asks"],
     "howItWorks": [
-      { "title": "Get your price", "text": "Answer a few questions and see your price instantly." },
+      {
+        "title": "Get your price",
+        "text": "Answer a few questions and see your price instantly."
+      },
       {
         "title": "Request a booking",
         "text": "Pick a date that suits you. No payment needed to request."
       },
-      { "title": "We call to confirm", "text": "We call you back quickly to confirm the details." }
+      {
+        "title": "We call to confirm",
+        "text": "We call you back quickly to confirm the details."
+      }
     ]
+  },
+  "about": {
+    "heading": "About us",
+    "body": "We're a local cleaning business looking after homes in Perth's east and south-east.\n\nMost of our work is end-of-lease cleaning, so we know what property managers check at the final inspection — and we clean to that checklist, room by room.\n\n## What you can expect\n\n- A price up front, confirmed on a quick phone call\n- A detailed checklist for every vacate clean\n- Fully insured\n- If the property manager finds something on our checklist that was missed, we come back and fix it\n\n**Owner to update:** add a few lines about who you are, how long you've been cleaning, and real team photos."
   }
 }

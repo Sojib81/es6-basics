@@ -161,6 +161,11 @@ export const homeSchema = z.object({
   howItWorks: z.array(z.object({ title: z.string(), text: z.string() })),
 });
 
+export const aboutSchema = z.object({
+  heading: z.string().min(1),
+  body: z.string(), // limited markdown
+});
+
 // ---------------------------------------------------------------- registry
 
 export const settingsSchemas = {
@@ -172,6 +177,7 @@ export const settingsSchemas = {
   tracking: trackingSchema,
   seo: seoSchema,
   home: homeSchema,
+  about: aboutSchema,
 } as const;
 
 export type SettingKey = keyof typeof settingsSchemas;
@@ -186,6 +192,7 @@ export type InvoicingSettings = SettingValue<"invoicing">;
 export type TrackingSettings = SettingValue<"tracking">;
 export type SeoSettings = SettingValue<"seo">;
 export type HomeSettings = SettingValue<"home">;
+export type AboutSettings = SettingValue<"about">;
 
 export function parseSetting<K extends SettingKey>(key: K, value: unknown): SettingValue<K> {
   return settingsSchemas[key].parse(value) as SettingValue<K>;

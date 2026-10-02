@@ -367,3 +367,35 @@ export const policies = sqliteTable("policies", {
   body: text("body").notNull(), // limited markdown; {businessName} {abn} {phone} {email} filled in
   updatedAt: updatedAt(),
 });
+
+export const reviews = sqliteTable(
+  "reviews",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    suburb: text("suburb"),
+    text: text("text").notNull(),
+    rating: integer("rating").notNull(), // 1–5
+    date: text("date").notNull(), // YYYY-MM-DD
+    source: text("source").notNull(), // e.g. "Google"
+    published: bool("published").notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [index("reviews_published_idx").on(t.published, t.date)],
+);
+
+export const MEDIA_USAGES = ["image", "pm-pack", "document"] as const;
+
+export const media = sqliteTable("media", {
+  id: text("id").primaryKey(),
+  r2Key: text("r2_key").notNull().unique(),
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  alt: text("alt").notNull(),
+  usage: text("usage", { enum: MEDIA_USAGES }).notNull(),
+  createdAt: createdAt(),
+  createdBy: text("created_by").notNull(),
+});

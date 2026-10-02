@@ -24,7 +24,9 @@
     "db:migrate:prod": "wrangler d1 migrations apply DB --remote",
     "db:seed:local": "mkdir -p .wrangler && tsx scripts/seed.ts > .wrangler/seed.sql && wrangler d1 execute DB --local --file .wrangler/seed.sql",
     "db:seed:staging": "mkdir -p .wrangler && tsx scripts/seed.ts > .wrangler/seed.sql && wrangler d1 execute DB --remote --env staging --file .wrangler/seed.sql",
-    "db:seed:prod": "mkdir -p .wrangler && tsx scripts/seed.ts > .wrangler/seed.sql && wrangler d1 execute DB --remote --file .wrangler/seed.sql"
+    "db:seed:prod": "mkdir -p .wrangler && tsx scripts/seed.ts > .wrangler/seed.sql && wrangler d1 execute DB --remote --file .wrangler/seed.sql",
+    "db:reset-limits:local": "wrangler d1 execute DB --local --command \"DELETE FROM rate_counters\"",
+    "test:e2e:local": "npm run db:reset-limits:local && playwright test"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.7",

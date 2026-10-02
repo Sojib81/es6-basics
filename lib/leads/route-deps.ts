@@ -12,7 +12,8 @@ export async function publicDepsFromRequest(request: Request): Promise<PublicDep
     db,
     config,
     notify: notifyContextFrom(db, config),
-    limiter: env.RATE_LIMITER,
+    // Burst limiting is skipped locally (E2E runs submit in parallel from one IP); unit-tested instead.
+    limiter: config.APP_ENV === "local" ? undefined : env.RATE_LIMITER,
     ip: request.headers.get("cf-connecting-ip"),
     suburbNames: getSuburbs().map((s) => s.name),
     background: ctx ? (p) => ctx.waitUntil(p) : undefined,

@@ -2,14 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Markdown } from "@/components/ui/markdown";
+import { JsonLd } from "@/components/site/json-ld";
 import { PriceCalculator } from "@/components/site/price-calculator";
+import { Reviews } from "@/components/site/reviews";
+import { siteUrl } from "@/lib/config";
 import { FaqList, Section } from "@/components/site/section";
 import { getBusinessInfo } from "@/lib/data/business";
-import { getFaqs, getServiceBySlug } from "@/lib/data/content";
+import { getFaqs, getPublishedReviews, getServiceBySlug, getSuburbs } from "@/lib/data/content";
 import { getSetting } from "@/lib/data/settings";
 import { getServiceOptions, pageMetadata } from "@/lib/data/site";
 import { formatCents } from "@/lib/money";
 import { priceFromCents } from "@/lib/price-from";
+import { breadcrumbLd, faqLd, serviceLd } from "@/lib/seo/jsonld";
 
 export async function generateMetadata(props: PageProps<"/services/[slug]">): Promise<Metadata> {
   const { slug } = await props.params;
@@ -27,17 +31,36 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
   const service = await getServiceBySlug(slug);
   if (!service) notFound();
 
-  const [business, pricing, faqs, options] = await Promise.all([
+  const [business, pricing, faqs, options, reviews] = await Promise.all([
     getBusinessInfo(),
     getSetting("pricing"),
     getFaqs(service.slug),
     getServiceOptions(),
+    getPublishedReviews(3),
   ]);
+  const base = siteUrl();
   const from = priceFromCents(service.serviceKey, pricing, service.priceFromCents);
   const calculable = service.bookable && service.serviceKey && service.serviceKey !== "office";
 
   return (
     <>
+      <JsonLd
+        data={serviceLd({
+          name: service.title,
+          description: service.summary,
+          url: `${base}/services/${service.slug}`,
+          siteUrl: base,
+          suburbs: getSuburbs(),
+          priceFromCents: from,
+        })}
+      />
+      <JsonLd data={faqLd(faqs)} />
+      <JsonLd
+        data={breadcrumbLd(base, [
+          { name: "Home", path: "/" },
+          { name: service.title, path: `/services/${service.slug}` },
+        ])}
+      />
       <Section tone="brand">
         <h1 className="text-ink text-3xl font-extrabold tracking-tight md:text-5xl">
           {service.title}
@@ -116,6 +139,8 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
           />
         </Section>
       )}
+
+      <Reviews reviews={reviews} />
 
       {faqs.length > 0 && (
         <Section>

@@ -65,7 +65,8 @@
         },
       ],
       "ratelimits": [
-        { "name": "RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 3, "period": 60 } },
+        // Higher than production so E2E runs (many submissions from one IP) do not trip it.
+        { "name": "RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 30, "period": 60 } },
       ],
     },
   },
