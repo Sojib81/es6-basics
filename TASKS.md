@@ -74,15 +74,21 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - [x] 6.10 Unanswered-lead reminder cron (every 5 min, business hours, not in quiet hours; once per lead)
 
 ## Phase 7 — Deposits
-- [ ] 7.1 Stripe client via fetch (Checkout Session create/retrieve, refunds) + webhook signature verification with WebCrypto (Stripe-Signature, tolerance)
-- [ ] 7.2 Booking API: deposit choice → Checkout Session (expires 1 h, metadata bookingId) → redirect URL; success/cancelled pages
-- [ ] 7.3 Webhook: checkout.session.completed (paid wins), checkout.session.expired (only if pending), charge.refunded; idempotent; owner alerts (deposit paid / not completed)
-- [ ] 7.4 Admin: deposit status, refund (full/partial) via Stripe API
-- [ ] 7.5 Safety-net cron 02:15 Perth: ask Stripe about pending sessions > 2 h
-- [ ] 7.6 Tracking: purchase conversion on success page (once per ref)
+- [x] 7.1 Stripe client via fetch (Checkout Session create/retrieve, refunds) + webhook signature verification with WebCrypto (Stripe-Signature, tolerance)
+- [x] 7.2 Booking API: deposit choice → Checkout Session (expires 1 h, metadata bookingId) → redirect URL; success/cancelled pages
+- [x] 7.3 Webhook: checkout.session.completed (paid wins), checkout.session.expired (only if pending), charge.refunded; idempotent; owner alerts (deposit paid / not completed)
+- [x] 7.4 Admin: deposit status, refund (full/partial) via Stripe API
+- [x] 7.5 Safety-net cron 02:15 Perth: ask Stripe about pending sessions > 2 h
+- [x] 7.6 Tracking: purchase conversion on success page (once per ref)
 
 ## Phase 8 — Job management & invoicing
-- [ ] Break down at start of phase
+- [ ] 8.1 Calendar: week + day views of confirmed jobs, capacity bar per window (units used / max), blocked dates shown
+- [ ] 8.2 "My jobs today" for the signed-in admin (assignments) + assign people on the booking page
+- [ ] 8.3 Customers: list/search, profile (bookings, enquiries, invoices, SMS opt-out, notes), property managers highlighted, repeat customers
+- [ ] 8.4 CSV export of bookings (date range)
+- [ ] 8.5 Invoices: table + migration, sequential numbering (atomic with settings), create from booking (final price, deposit deducted, GST if registered), void, mark paid
+- [ ] 8.6 Customer invoice page /invoice/[token] (print-friendly A4) + send by email (customer_invoice_email)
+- [ ] 8.7 Invoice list (unpaid/overdue/paid this month) + CSV export for BAS
 
 ## Phase 9 — Light content admin
 - [ ] Break down at start of phase

@@ -42,6 +42,7 @@
   "triggers": {
     "crons": [
       "0 18 * * *", // 02:00 Perth — wipe old access notes, clean rate counters
+      "15 18 * * *", // 02:15 Perth — deposit safety net (pending Stripe sessions)
       "*/5 23,0-9 * * *", // every 5 min 07:00–17:55 Perth — remind owners about waiting leads
     ],
   },

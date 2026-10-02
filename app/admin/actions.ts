@@ -16,7 +16,7 @@ import {
   type EnquiryStatus,
 } from "@/lib/leads/admin-ops";
 import { isRef } from "@/lib/refs";
-import { getServerEnv } from "@/lib/config";
+import { getServerEnv, stripeConfigFrom } from "@/lib/config";
 import { createDb } from "@/lib/db/client";
 import { dollarsToCents } from "@/lib/money-input";
 import { notifyContextFrom } from "@/lib/notify/context";
@@ -30,6 +30,7 @@ import {
   type QuickMessage,
 } from "@/lib/leads/booking-edit";
 import { createManualBooking, type ManualBookingInput } from "@/lib/leads/manual-booking";
+import { refundDeposit } from "@/lib/leads/deposits";
 
 const str = (fd: FormData, k: string) => {
   const v = fd.get(k);
@@ -169,4 +170,24 @@ export async function replyAction(fd: FormData) {
 export async function manualBookingAction(input: ManualBookingInput) {
   const admin = await requireAdminAction();
   return createManualBooking(await getDb(), input, admin.email);
+}
+
+export async function refundAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const ref = refFrom(fd, "BK");
+  const cents = dollarsToCents(str(fd, "amount"));
+  if (cents === null)
+    back(ref, { ok: false, code: "invalid", message: "Enter an amount like 50 or 25.50" });
+  const { env, config } = await getServerEnv();
+  const db = createDb(env.DB);
+  const r = await refundDeposit(
+    notifyContextFrom(db, config),
+    ref,
+    cents!,
+    admin.email,
+    stripeConfigFrom(config),
+  );
+  redirect(
+    `/admin/leads/${ref}?${r.ok ? "sent" : "error=refund&msg"}=${encodeURIComponent(r.message)}`,
+  );
 }

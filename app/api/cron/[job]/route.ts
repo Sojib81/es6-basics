@@ -2,7 +2,7 @@
  * Runs one scheduled job. Called by the Worker's scheduled() handler (worker.ts) with the
  * CRON_SECRET header — never public. Unknown job or bad secret → 404.
  */
-import { getServerEnv } from "@/lib/config";
+import { getServerEnv, stripeConfigFrom } from "@/lib/config";
 import { JOB_HANDLERS } from "@/lib/cron/jobs";
 import { createDb } from "@/lib/db/client";
 import { notifyContextFrom } from "@/lib/notify/context";
@@ -25,7 +25,11 @@ export async function POST(request: Request, ctx: RouteContext<"/api/cron/[job]"
   }
   try {
     const db = createDb(env.DB);
-    const summary = await handler({ db, notify: notifyContextFrom(db, config) });
+    const summary = await handler({
+      db,
+      notify: notifyContextFrom(db, config),
+      stripe: stripeConfigFrom(config),
+    });
     console.log(`cron ${job}: ${summary}`);
     return Response.json({ ok: true, job, summary });
   } catch (e) {

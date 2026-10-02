@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { Thread } from "@/components/admin/thread";
 import {
   adminButton,
@@ -14,6 +15,7 @@ import {
   bookingStatusAction,
   finalPriceAction,
   paidAction,
+  refundAction,
   quickMessageAction,
   replyAction,
   scheduleAction,
@@ -317,6 +319,36 @@ export default async function BookingDetail(props: PageProps<"/admin/leads/[ref]
           ))}
         </form>
       </Card>
+
+      {b.stripePaymentIntentId && (
+        <Card title="Card deposit (Stripe)">
+          <p className="text-sm">
+            {b.depositCents ? formatCents(b.depositCents) : ""} ·{" "}
+            {b.depositStatus.replace("_", " ")}
+            {b.refundedCents > 0 && ` · ${formatCents(b.refundedCents)} refunded`}
+          </p>
+          {(b.depositStatus === "paid" || b.depositStatus === "partially_refunded") && (
+            <form action={refundAction} className="mt-3 flex items-end gap-2">
+              <input type="hidden" name="ref" value={b.ref} />
+              <label className="flex-1 space-y-1">
+                <span className="text-sm font-semibold">Refund amount ($)</span>
+                <input
+                  name="amount"
+                  inputMode="decimal"
+                  defaultValue={centsToDollars((b.depositCents ?? 0) - b.refundedCents)}
+                  className={adminInput}
+                />
+              </label>
+              <ConfirmButton
+                confirmText="Refund this amount to the customer's card? This can't be undone."
+                className={`${adminButton} border border-red-300 bg-white text-red-800`}
+              >
+                Refund to card
+              </ConfirmButton>
+            </form>
+          )}
+        </Card>
+      )}
 
       <Card title="Schedule">
         <form

@@ -12,6 +12,7 @@ import { checkBurst, checkDailyCaps, type FormKind } from "@/lib/ratelimit";
 import { bookingRequestSchema, enquiryRequestSchema } from "@/lib/schemas/booking";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { createBooking, LeadError } from "./create-booking";
+import { startDeposit, type StripeConfig } from "./deposits";
 import { createEnquiry } from "./create-enquiry";
 
 export type PublicDeps = {
@@ -25,10 +26,12 @@ export type PublicDeps = {
   /** Runs work after the response (ctx.waitUntil on Workers). Defaults to awaiting it. */
   background?: (p: Promise<unknown>) => void | Promise<unknown>;
   fetchImpl?: typeof fetch;
+  /** Stripe for deposits; null/undefined → deposits fall back to "pay after we confirm". */
+  stripe?: StripeConfig | null;
 };
 
 export type PublicResult =
-  | { status: 200; body: { ok: true; ref: string } }
+  | { status: 200; body: { ok: true; ref: string; checkoutUrl?: string } }
   | {
       status: 400 | 403 | 429 | 500;
       body: { ok: false; error: string; fieldErrors?: Record<string, string> };
@@ -105,8 +108,12 @@ export async function handleBookingRequest(raw: unknown, deps: PublicDeps): Prom
       suburbNames: deps.suburbNames,
       now: deps.now,
     });
+    const checkoutUrl =
+      booking.depositEnabled && req.paymentChoice === "deposit"
+        ? await startDeposit(deps.db, bookingId, deps.stripe ?? null, deps.now)
+        : null;
     await runBackground(deps, alertNewBooking(deps.notify, bookingId, deps.now));
-    return { status: 200, body: { ok: true, ref } };
+    return { status: 200, body: { ok: true, ref, ...(checkoutUrl ? { checkoutUrl } : {}) } };
   } catch (e) {
     if (e instanceof LeadError)
       return {

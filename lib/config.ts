@@ -27,6 +27,8 @@ export const runtimeConfigSchema = z
     DEV_ADMIN_EMAIL: optionalSecret,
     VAPID_PRIVATE_KEY: optionalSecret,
     SMS_INBOUND_SECRET: optionalSecret,
+    STRIPE_SECRET_KEY: optionalSecret,
+    STRIPE_WEBHOOK_SECRET: optionalSecret,
     VAPID_SUBJECT: optionalSecret,
   })
   .refine((c) => c.APP_ENV === "production" || c.ALERTS_MODE === "log", {
@@ -65,6 +67,13 @@ export async function getServerEnv(): Promise<{
 
 export async function getRuntimeConfig(): Promise<RuntimeConfig> {
   return (await getServerEnv()).config;
+}
+
+/** Stripe settings for deposits, or null when not configured. */
+export function stripeConfigFrom(config: Pick<RuntimeConfig, "STRIPE_SECRET_KEY">) {
+  return config.STRIPE_SECRET_KEY
+    ? { secretKey: config.STRIPE_SECRET_KEY, siteUrl: siteUrl() }
+    : null;
 }
 
 /** Public site URL, e.g. https://example.com.au (no trailing slash). */

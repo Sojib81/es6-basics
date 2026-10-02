@@ -9,3 +9,6 @@ DEV_ADMIN_EMAIL=owner@example.com
 CRON_SECRET=local-cron-secret-0123456789
 # Webhook secret for inbound SMS (provider URL: /api/sms/inbound?secret=...)
 SMS_INBOUND_SECRET=local-sms-secret-0123456789
+# Stripe (deposits). Use test-mode keys outside production.
+# STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_local_test_secret_0123456789

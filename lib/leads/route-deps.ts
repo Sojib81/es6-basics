@@ -1,5 +1,5 @@
 /** Wires PublicDeps from the Cloudflare request context (route handlers only). */
-import { getServerEnv } from "@/lib/config";
+import { getServerEnv, stripeConfigFrom } from "@/lib/config";
 import { createDb } from "@/lib/db/client";
 import { getSuburbs } from "@/lib/data/content";
 import { notifyContextFrom } from "@/lib/notify/context";
@@ -17,6 +17,7 @@ export async function publicDepsFromRequest(request: Request): Promise<PublicDep
     ip: request.headers.get("cf-connecting-ip"),
     suburbNames: getSuburbs().map((s) => s.name),
     background: ctx ? (p) => ctx.waitUntil(p) : undefined,
+    stripe: stripeConfigFrom(config),
   };
 }
 

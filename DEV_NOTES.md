@@ -17,8 +17,9 @@ The **living notes** for this codebase. `BLUEPRINT.md` says *what* to build; thi
 | 4 — Full public site & SEO | ✅ Done (2026-10-02) |
 | 5 — Admin settings & templates | ✅ Done (2026-10-02) |
 | 6 — Admin leads & inbox (full) | ✅ Done (2026-10-02) |
-| 7 — Deposits | ⏭ Next |
-| 8–10 | Not started — see `TASKS.md` |
+| 7 — Deposits | ✅ Done (2026-10-02) — needs Stripe keys + webhook (Section 4) to take real payments |
+| 8 — Job management & invoicing | ⏭ Next |
+| 9–10 | Not started — see `TASKS.md` |
 
 Lighthouse mobile after Phase 4 (Worker runtime, local): home 97/100/100/100, vacate service 96/100/100/100, pricing 99/100/100/100, Belmont suburb 97/100/100/100 (perf/a11y/best-practices/SEO).
 
@@ -118,6 +119,8 @@ lib/
   leads/manual-booking.ts phone bookings + enquiry → booking conversion
   leads/dashboard.ts, leads/source.ts   dashboard numbers, lead source classification
   leads/sms-inbound.ts  STOP/START handling + logging replies to the lead
+  stripe.ts             Stripe over fetch (Checkout, retrieve, refunds) + webhook signature check (WebCrypto)
+  leads/deposits.ts     startDeposit, webhook event handling (paid wins, idempotent), refunds, safety net
   data/content.ts       services, faqs, policies, reviews, media loaders; suburbs from seed
   data/suburbs.ts, suburbs.ts   suburb lookup + indexing rule (≥150 words, unique) + nearby links
   seo/jsonld.ts         LocalBusiness (no address), Service, FAQPage, BreadcrumbList builders
@@ -132,6 +135,9 @@ app/admin/settings/     index, [section] (generic flat settings incl. business),
                         templates (+ [key]), users — each with its own actions.ts
 app/api/cron/[job]      runs one job; requires the CRON_SECRET header (404 otherwise)
 app/api/sms/inbound     SMS provider reply webhook (?secret=SMS_INBOUND_SECRET)
+app/api/stripe/webhook  Stripe events (signature verified over the raw body)
+app/api/public/deposit  "pay the deposit again" from the cancelled page
+app/(site)/booking/success, /cancelled   Stripe return pages (success double-checks with Stripe)
 app/admin/page.tsx      dashboard;  app/admin/leads/new  phone booking (+ ?enquiry=EQ-… to convert)
 app/admin-manifest.webmanifest   admin-only PWA manifest;  public/sw.js  service worker (push)
 worker.ts               custom Worker entry: OpenNext fetch + scheduled() → /api/cron/<job>
@@ -222,8 +228,13 @@ Needs a Cloudflare account on **Workers Paid (US$5/month)**.
    - Copy the **Application Audience (AUD) tag** → `CF_ACCESS_AUD` secret.
    - Every admin must be in BOTH this policy and `admin_users` (seed/admin-users.json now, Users page later).
    - Do the same for the staging Worker's URL with its own application.
-10. **Phone alerts (each owner, each phone):** open the admin on the phone → on iPhone first Share → *Add to Home Screen* and open it from the icon → tap **🔔 Enable alerts on this device**. Test by submitting a booking on staging (staging logs only — test real delivery on production with a test booking).
-11. **Custom domain:** Worker → Settings → Domains & Routes (Phase 10).
+10. **Stripe (deposits):** create a Stripe account (Australian business). Test first:
+   - Staging: `npx wrangler secret put STRIPE_SECRET_KEY --env staging` with the **test** secret key (`sk_test_…`).
+   - Stripe dashboard → Developers → Webhooks → Add endpoint `https://<staging-url>/api/stripe/webhook`, events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `charge.refunded`. Copy its signing secret → `STRIPE_WEBHOOK_SECRET` (staging).
+   - Turn deposits on in Admin → Settings → Bookings, book with "Pay deposit now", pay with card `4242 4242 4242 4242`, check the booking shows "paid", then refund it from the admin.
+   - Production: repeat with the **live** key and a live-mode webhook endpoint for the production URL.
+11. **Phone alerts (each owner, each phone):** open the admin on the phone → on iPhone first Share → *Add to Home Screen* and open it from the icon → tap **🔔 Enable alerts on this device**. Test by submitting a booking on staging (staging logs only — test real delivery on production with a test booking).
+12. **Custom domain:** Worker → Settings → Domains & Routes (Phase 10).
 
 ---
 
@@ -279,6 +290,11 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - **2026-10-02 — Manual (phone) bookings skip the public date/suburb rules** and record `heardFrom = "Phone"`; they're audited as the owner. Converting an enquiry links it (`enquiries.booking_id`) and closes it.
 - **2026-10-02 — Inbound SMS webhook uses a URL secret** (works for ClickSend and Twilio alike) instead of provider-specific signatures. STOP-type replies opt out (exact-word match, so "can you stop by" doesn't), START opts back in; STOP from unknown numbers is remembered by creating a customer row.
 - **2026-10-02 — SMS/email dates formatted by hand** ("Fri 9 Oct") — `Intl` output differed between Node and the expected format (commas) and could differ again in workerd.
+- **2026-10-02 — Stripe without the SDK:** a ~150-line fetch client (`lib/stripe.ts`) covers Checkout, retrieve and refunds; webhook signatures verified with WebCrypto HMAC (5-minute tolerance, multiple `v1` signatures accepted). Keeps the Worker small and avoids Node-only code.
+- **2026-10-02 — Deposit rules:** `paid` always wins and is applied once; `expired` only replaces `pending` for the same session; refund state comes from Stripe's `amount_refunded` (replays harmless). Checkout expires after 60 min; idempotency key = booking + expiry. The success page also asks Stripe directly so customers see "paid" even if the webhook is slow.
+- **2026-10-02 — Deposit failures never lose a booking:** no Stripe key or a Stripe error → booking saved as pay-later + a note on the booking for the owner. Customers can retry from the cancelled page (`/api/public/deposit`).
+- **2026-10-02 — `paidMethod = stripe` once a deposit is paid** (per blueprint) — the remaining balance is tracked on the invoice (Phase 8).
+- **2026-10-02 — Refunds need a confirm click** (`ConfirmButton`), are validated against what's refundable, and use an idempotency key so a double-click can't refund twice.
 - **2026-10-02 — Prettier ignores `*.md`.** It reflowed the big tables in BLUEPRINT.md into unreadable diffs. Docs are hand-formatted.
 - **2026-10-02 — CI (GitHub Actions) runs typecheck, lint, format, unit tests and the OpenNext build.** Deploying is Workers Builds' job, not CI's.
 
@@ -347,6 +363,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 | Service descriptions, checklists, FAQs, home text | `seed/services.json`, `seed/faqs.json`, `seed/settings.json` → `home` — owner to review wording/claims (e.g. "Free re-clean" trust point) | Before launch |
 | About page text | `seed/settings.json` → `about` (contains an "Owner to update" line that shows publicly until replaced) | Before launch |
 | Suburb intros | `seed/suburbs.json` — owner to check local details are accurate | Before launch |
+| Stripe keys + webhook (test, then live) | Section 4 step 10 | Before turning deposits on |
 | VAPID keys, SMS inbound secret | Section 4 step 7 | Before relying on phone alerts / STOP |
 | Real-device push test (iPhone + Android) | Section 4 step 10 — can't be automated here (needs real push services) | Before launch |
 | Message templates | `seed/templates.json` (editable in admin from Phase 5) | Review before launch |
@@ -361,6 +378,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 Newest at the top. One line per task: date, task id, what changed.
 
+- **2026-10-02 — Phase 7 (tasks 7.1–7.6).** Deposits: Stripe fetch client + WebCrypto webhook verification; Checkout from the booking form (fallback to pay-later if unavailable); webhook (completed/async-succeeded/expired/refunded) with idempotent "paid wins" rules and owner SMS; success page (double-checks Stripe, purchase conversion) + cancelled page with "pay again"; admin card-deposit panel with confirmed partial/full refunds; 02:15 Perth safety-net cron. 224 tests + 17 E2E passing twice on the Worker runtime. Real card payments not testable here (no Stripe account/network) — see Section 4 step 10.
 - **2026-10-02 — Phase 6 (tasks 6.1–6.10).** Web Push (WebCrypto, RFC-vector tested) + admin PWA (manifest, service worker, enable-alerts toggle, subscriptions table) and push on new leads; dashboard (new leads, today/tomorrow jobs, avg first response, needs-attention, leads by source); booking detail: schedule with capacity, final price, paid method, update customer from submitted details, send confirmation/reminder/review request, free-text SMS/email replies; inbox reply + convert to booking; phone bookings; inbound SMS webhook (STOP/START, replies logged); unanswered-lead reminder cron (every 5 min in business hours). 212 tests + 16 E2E passing twice on the Worker runtime.
 - **2026-10-02 — Phase 5 (tasks 5.1–5.9).** Admin settings: index, business info (hours, GST, socials, review link, bank details), pricing editor (grid, extras, multipliers, regular hours, add-ons, live old-vs-new preview), booking settings (deposit, windows, capacity, blocked dates, retention), notifications, home/about/SEO/tracking/invoicing; history + restore everywhere; template editor (variables, preview, SMS parts counter, Spam Act checks, send test to me); users (add/edit/deactivate with lockout guards). Custom Worker entry with Cron Triggers → `/api/cron/<job>` (CRON_SECRET): access-note wipe + rate-counter cleanup. Fixed: emails with stray spaces (phone keyboards) were rejected on public forms and the users page. 176 unit/integration tests + 10 E2E (incl. "owner changes a price on their phone and it's live", 3 stable runs on the Worker runtime).
 - **2026-10-02 — Phase 4 (tasks 4.1–4.7).** Suburb pages + /areas (6 indexed, rest noindex), property managers page (PM pack from media), about (settings key) and FAQ pages; JSON-LD (LocalBusiness, Service, FAQPage, BreadcrumbList); sitemap + robots; default OG image + Twitter cards; reviews + media tables and R2 media route; real-reviews-only section; mobile CTA bar hidden on booking pages. Lighthouse mobile 96–100 on all audited pages. 143 tests + 6 E2E passing on the Worker runtime.

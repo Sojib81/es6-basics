@@ -256,6 +256,7 @@ function WizardInner(props: BookingWizardProps) {
       const data = (await res.json()) as {
         ok: boolean;
         ref?: string;
+        checkoutUrl?: string;
         error?: string;
         fieldErrors?: Record<string, string>;
       };
@@ -263,6 +264,10 @@ function WizardInner(props: BookingWizardProps) {
         try {
           window.sessionStorage.removeItem(DRAFT_KEY);
         } catch {}
+        if (data.checkoutUrl?.startsWith("https://checkout.stripe.com/")) {
+          window.location.assign(data.checkoutUrl); // pay the deposit; Stripe returns to /booking/success
+          return;
+        }
         router.push(`/thank-you?ref=${encodeURIComponent(data.ref)}`);
         return;
       }

@@ -12,11 +12,12 @@ import {
   pushTemplate,
 } from "@/lib/notify/alerts";
 import { sendTemplate, type NotifyContext } from "@/lib/notify/deliver";
+import { depositSafetyNet, type StripeConfig } from "@/lib/leads/deposits";
 import { siteUrl } from "@/lib/config";
 import { formatAuPhone } from "@/lib/phone";
 import { isInQuietHours, isWithinBusinessHours } from "@/lib/time";
 
-export type JobContext = { db: Db; notify: NotifyContext };
+export type JobContext = { db: Db; notify: NotifyContext; stripe?: StripeConfig | null };
 
 /** Deletes access notes on finished jobs older than accessNoteRetentionDays (privacy, golden rule 9). */
 export async function wipeAccessNotes({ db }: JobContext, now: Date = new Date()): Promise<string> {
@@ -166,4 +167,5 @@ export const JOB_HANDLERS: Record<string, (ctx: JobContext, now?: Date) => Promi
   "wipe-access-notes": wipeAccessNotes,
   "cleanup-rate-counters": cleanupRateCounters,
   "unanswered-reminders": remindUnanswered,
+  "deposit-safety-net": ({ notify, stripe }, now) => depositSafetyNet(notify, stripe ?? null, now),
 };
