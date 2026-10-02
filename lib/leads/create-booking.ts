@@ -33,30 +33,41 @@ const CUSTOMER_TYPE: Record<BookingRequest["bookerRole"], CustomerType> = {
 
 export const OTHER_SUBURB = "Other";
 
+/** What createBooking needs; public requests always have an email, phone bookings may not. */
+export type NewBooking = Omit<
+  BookingRequest,
+  "email" | "turnstileToken" | "confirmCallUnderstood"
+> & {
+  email?: string;
+};
+
 export async function createBooking(
   db: Db,
-  req: BookingRequest,
+  req: NewBooking,
   opts: {
     pricing: PricingConfig;
     pricingVersionId: string | null;
     booking: BookingSettings;
     suburbNames: string[];
     now?: Date;
+    /** Phone booking entered by an owner: any date and suburb allowed, audited as them. */
+    manualBy?: string;
   },
 ): Promise<{ bookingId: string; ref: string; estimateCents: number }> {
   const now = opts.now ?? new Date();
+  const manual = !!opts.manualBy;
 
-  if (!isBookableDate(req.preferredDate, now, opts.booking))
+  if (!manual && !isBookableDate(req.preferredDate, now, opts.booking))
     throw new LeadError(
       "invalid_date",
       "preferredDate",
       "That date isn't available — please pick another.",
     );
-  if (req.backupDate && !isBookableDate(req.backupDate, now, opts.booking))
+  if (!manual && req.backupDate && !isBookableDate(req.backupDate, now, opts.booking))
     throw new LeadError("invalid_date", "backupDate", "That backup date isn't available.");
   if (!opts.booking.timeWindows.some((w) => w.id === req.timeWindow))
     throw new LeadError("invalid_window", "timeWindow", "Please choose a time window.");
-  if (req.suburb !== OTHER_SUBURB && !opts.suburbNames.includes(req.suburb))
+  if (!manual && req.suburb !== OTHER_SUBURB && !opts.suburbNames.includes(req.suburb))
     throw new LeadError("invalid_suburb", "suburb", "Please choose your suburb from the list.");
 
   const estimate = calculateEstimate(req.estimate, opts.pricing);
@@ -93,7 +104,7 @@ export async function createBooking(
       bookerCustomerId: match.customerId,
       customerDetailsDiffer: match.detailsDiffer,
       submittedName: req.name,
-      submittedEmail: req.email.toLowerCase(),
+      submittedEmail: req.email ? req.email.toLowerCase() : null,
       bookerRole: req.bookerRole,
       siteContactName,
       siteContactPhone,
@@ -131,7 +142,7 @@ export async function createBooking(
     await db.batch([
       db.insert(bookings).values(row),
       auditInsert(db, {
-        actorEmail: "public",
+        actorEmail: opts.manualBy ?? "public",
         action: "create",
         entity: "booking",
         entityId: bookingId,

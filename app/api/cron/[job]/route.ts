@@ -5,6 +5,7 @@
 import { getServerEnv } from "@/lib/config";
 import { JOB_HANDLERS } from "@/lib/cron/jobs";
 import { createDb } from "@/lib/db/client";
+import { notifyContextFrom } from "@/lib/notify/context";
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -15,7 +16,7 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 export async function POST(request: Request, ctx: RouteContext<"/api/cron/[job]">) {
   const { job } = await ctx.params;
-  const { env } = await getServerEnv();
+  const { env, config } = await getServerEnv();
   const secret = (env as unknown as { CRON_SECRET?: string }).CRON_SECRET;
   const given = request.headers.get("x-cron-secret") ?? "";
   const handler = JOB_HANDLERS[job];
@@ -23,7 +24,8 @@ export async function POST(request: Request, ctx: RouteContext<"/api/cron/[job]"
     return new Response("Not found", { status: 404 });
   }
   try {
-    const summary = await handler(createDb(env.DB));
+    const db = createDb(env.DB);
+    const summary = await handler({ db, notify: notifyContextFrom(db, config) });
     console.log(`cron ${job}: ${summary}`);
     return Response.json({ ok: true, job, summary });
   } catch (e) {

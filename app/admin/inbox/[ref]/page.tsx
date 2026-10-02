@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { enquiryNoteAction, enquiryStatusAction } from "@/app/admin/actions";
+import { enquiryNoteAction, enquiryStatusAction, replyAction } from "@/app/admin/actions";
 import { Thread } from "@/components/admin/thread";
-import { adminButton, Badge, Card, ENQUIRY_STATUS_STYLE, when } from "@/components/admin/ui";
+import {
+  adminButton,
+  adminInput,
+  Badge,
+  Card,
+  ENQUIRY_STATUS_STYLE,
+  when,
+} from "@/components/admin/ui";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getDb } from "@/lib/db/client";
 import { getEnquiryByRef, getThread, setEnquiryStatus } from "@/lib/leads/admin-ops";
@@ -54,6 +61,16 @@ export default async function EnquiryDetail(props: PageProps<"/admin/inbox/[ref]
         </div>
         <Badge status={q.status} styles={ENQUIRY_STATUS_STYLE} />
       </div>
+      {typeof sp.sent === "string" && (
+        <p className="rounded-lg bg-green-50 p-3 text-sm text-green-900" role="status">
+          {sp.sent}
+        </p>
+      )}
+      {typeof sp.msg === "string" && (
+        <p className="rounded-lg bg-red-50 p-3 text-sm text-red-900" role="alert">
+          {sp.msg}
+        </p>
+      )}
       {sp.saved && (
         <p className="rounded-lg bg-green-50 p-3 text-sm text-green-900" role="status">
           Saved.
@@ -124,6 +141,48 @@ export default async function EnquiryDetail(props: PageProps<"/admin/inbox/[ref]
           {statusButton("replied", "Replied")}
           {statusButton("closed", "Closed")}
         </div>
+      </Card>
+
+      <Card title="Reply">
+        <form action={replyAction} className="space-y-2">
+          <input type="hidden" name="enquiryRef" value={q.ref} />
+          <div className="flex gap-4 text-sm">
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="channel"
+                value="email"
+                defaultChecked={!!q.email}
+                disabled={!q.email}
+              />{" "}
+              Email
+            </label>
+            <label className="flex items-center gap-1">
+              <input type="radio" name="channel" value="sms" defaultChecked={!q.email} /> SMS
+            </label>
+          </div>
+          <input
+            name="subject"
+            defaultValue={`Re: your enquiry ${q.ref}`}
+            className={adminInput}
+            aria-label="Email subject"
+          />
+          <textarea
+            name="body"
+            rows={4}
+            required
+            placeholder="Write your reply…"
+            className={adminInput}
+            aria-label="Reply"
+          />
+          <button className={`${adminButton} bg-brand text-white`}>Send reply</button>
+        </form>
+        <Link
+          href={`/admin/leads/new?enquiry=${q.ref}`}
+          className={`${adminButton} border-line mt-3 border bg-white`}
+        >
+          Convert to booking
+        </Link>
       </Card>
 
       <Thread messages={thread} action={enquiryNoteAction} refCode={q.ref} />

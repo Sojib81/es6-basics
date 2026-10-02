@@ -399,3 +399,19 @@ export const media = sqliteTable("media", {
   createdAt: createdAt(),
   createdBy: text("created_by").notNull(),
 });
+
+export const pushSubscriptions = sqliteTable(
+  "push_subscriptions",
+  {
+    id: text("id").primaryKey(),
+    adminEmail: text("admin_email")
+      .notNull()
+      .references(() => adminUsers.email),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("user_agent"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("push_admin_idx").on(t.adminEmail)],
+);

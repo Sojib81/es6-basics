@@ -9,7 +9,17 @@ import {
   Card,
   when,
 } from "@/components/admin/ui";
-import { bookingNoteAction, bookingStatusAction } from "@/app/admin/actions";
+import {
+  bookingNoteAction,
+  bookingStatusAction,
+  finalPriceAction,
+  paidAction,
+  quickMessageAction,
+  replyAction,
+  scheduleAction,
+  updateCustomerAction,
+} from "@/app/admin/actions";
+import { centsToDollars } from "@/lib/money-input";
 import { requireAdmin } from "@/lib/auth/admin";
 import { getSetting } from "@/lib/data/settings";
 import { getDb } from "@/lib/db/client";
@@ -90,7 +100,26 @@ export default async function BookingDetail(props: PageProps<"/admin/leads/[ref]
           Saved.
         </p>
       )}
-      {error === "capacity" ? (
+      {typeof sp.sent === "string" && (
+        <p className="rounded-lg bg-green-50 p-3 text-sm text-green-900" role="status">
+          {sp.sent}
+        </p>
+      )}
+      {error === "capacity" && sp.date ? (
+        <div
+          className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+          role="alert"
+        >
+          <p>{msg}</p>
+          <form action={scheduleAction} className="mt-2">
+            <input type="hidden" name="ref" value={b.ref} />
+            <input type="hidden" name="date" value={String(sp.date)} />
+            <input type="hidden" name="window" value={String(sp.window ?? "")} />
+            <input type="hidden" name="override" value="1" />
+            <button className={`${adminButton} bg-amber-700 text-white`}>Schedule anyway</button>
+          </form>
+        </div>
+      ) : error === "capacity" ? (
         <div
           className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
           role="alert"
@@ -201,10 +230,17 @@ export default async function BookingDetail(props: PageProps<"/admin/leads/[ref]
 
         <Card title="People">
           {b.customerDetailsDiffer && (
-            <p className="mb-2 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">
+            <div className="mb-2 rounded-lg bg-amber-50 p-2 text-sm text-amber-900">
               Details differ from the customer record: <strong>{c.name}</strong>
               {c.email ? ` (${c.email})` : ""}. Check on the call.
-            </p>
+              <form action={updateCustomerAction} className="mt-2">
+                <input type="hidden" name="ref" value={b.ref} />
+                <button className={`${adminButton} border border-amber-400 bg-white`}>
+                  Update customer to {b.submittedName}
+                  {b.submittedEmail ? ` (${b.submittedEmail})` : ""}
+                </button>
+              </form>
+            </div>
           )}
           <dl className="text-sm">
             <Row label="Booked by">{`${b.submittedName} (${ROLE_LABEL[b.bookerRole]})`}</Row>
@@ -251,6 +287,123 @@ export default async function BookingDetail(props: PageProps<"/admin/leads/[ref]
           {b.paymentChoice === "deposit" ? `deposit (${b.depositStatus})` : "after confirmation"} ·{" "}
           {b.paidMethod}
         </p>
+        <form action={finalPriceAction} className="mt-3 flex items-end gap-2">
+          <input type="hidden" name="ref" value={b.ref} />
+          <label className="flex-1 space-y-1">
+            <span className="text-sm font-semibold">Final price agreed ($)</span>
+            <input
+              name="price"
+              inputMode="decimal"
+              defaultValue={b.finalPriceCents !== null ? centsToDollars(b.finalPriceCents) : ""}
+              placeholder={b.estimateCents !== null ? centsToDollars(b.estimateCents) : ""}
+              className={adminInput}
+            />
+          </label>
+          <button className={`${adminButton} border-line border bg-white`}>Save price</button>
+        </form>
+        <form action={paidAction} className="mt-3 flex flex-wrap gap-2">
+          <input type="hidden" name="ref" value={b.ref} />
+          <span className="self-center text-sm font-semibold">Paid by:</span>
+          {(["cash", "transfer", "unpaid"] as const).map((m) => (
+            <button
+              key={m}
+              name="method"
+              value={m}
+              disabled={b.paidMethod === m || b.paidMethod === "stripe"}
+              className={`${adminButton} border-line border ${b.paidMethod === m ? "bg-brand text-white" : "bg-white"}`}
+            >
+              {m === "transfer" ? "Bank transfer" : m === "cash" ? "Cash" : "Not paid"}
+            </button>
+          ))}
+        </form>
+      </Card>
+
+      <Card title="Schedule">
+        <form
+          action={scheduleAction}
+          className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+        >
+          <input type="hidden" name="ref" value={b.ref} />
+          <label className="space-y-1">
+            <span className="text-sm font-semibold">Date</span>
+            <input
+              type="date"
+              name="date"
+              required
+              defaultValue={b.scheduledDate ?? b.preferredDate ?? ""}
+              className={adminInput}
+            />
+          </label>
+          <label className="space-y-1">
+            <span className="text-sm font-semibold">Time</span>
+            <select
+              name="window"
+              defaultValue={b.scheduledWindow ?? b.timeWindow ?? ""}
+              className={adminInput}
+            >
+              {bookingSettings.timeWindows.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className={`${adminButton} bg-brand text-white`}>Save schedule</button>
+        </form>
+      </Card>
+
+      <Card title="Message the customer">
+        <form action={quickMessageAction} className="grid grid-cols-3 gap-2">
+          <input type="hidden" name="ref" value={b.ref} />
+          <button name="kind" value="confirmation" className={`${adminButton} bg-brand text-white`}>
+            Send confirmation
+          </button>
+          <button
+            name="kind"
+            value="reminder"
+            className={`${adminButton} border-line border bg-white`}
+          >
+            Send reminder
+          </button>
+          <button
+            name="kind"
+            value="review"
+            className={`${adminButton} border-line border bg-white`}
+          >
+            Ask for review
+          </button>
+        </form>
+        <form action={replyAction} className="mt-4 space-y-2">
+          <input type="hidden" name="bookingRef" value={b.ref} />
+          <div className="flex gap-4 text-sm">
+            <label className="flex items-center gap-1">
+              <input type="radio" name="channel" value="sms" defaultChecked /> SMS
+            </label>
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="channel"
+                value="email"
+                disabled={!b.submittedEmail && !c.email}
+              />{" "}
+              Email
+            </label>
+          </div>
+          <input
+            name="subject"
+            placeholder="Email subject"
+            defaultValue={`Your booking ${b.ref}`}
+            className={adminInput}
+          />
+          <textarea
+            name="body"
+            rows={3}
+            required
+            placeholder="Write a message…"
+            className={adminInput}
+          />
+          <button className={`${adminButton} border-line border bg-white`}>Send message</button>
+        </form>
       </Card>
 
       <Thread messages={thread} action={bookingNoteAction} refCode={b.ref} />

@@ -62,19 +62,24 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - [x] 5.9 Scheduled worker entry (`scheduled()` handler) + access-note wipe cron + rate-counter cleanup
 
 ## Phase 6 — Admin leads & inbox (full)
-- [ ] 6.1 Web Push: VAPID JWT (ES256) + aes128gcm payload encryption with WebCrypto, tested against RFC 8291 vectors
-- [ ] 6.2 PWA: manifest (scope /admin), service worker (push + notificationclick), "Enable alerts on this device", push_subscriptions table, prune dead endpoints (404/410)
-- [ ] 6.3 Push alerts for new bookings/enquiries alongside SMS/email (respect per-user + global toggles)
-- [ ] 6.4 Dashboard: new leads, unread enquiries, jobs today/tomorrow, average first-response time, needs-attention list, bookings by source this week
-- [ ] 6.5 Booking detail: schedule date/window (with capacity check), set final price, mark paid (cash/transfer), edit customer details from submitted data ("details differ" → update customer)
-- [ ] 6.6 Quick actions: send confirmation (email + SMS), send reminder, request Google review (honours smsOptOut)
-- [ ] 6.7 Reply from admin: email or SMS to the customer from the booking/enquiry thread (template optional); enquiry → "replied"
-- [ ] 6.8 Manual booking (phone orders) and enquiry → booking conversion
-- [ ] 6.9 SMS inbound webhook: STOP/UNSUBSCRIBE → smsOptOut; replies logged to the thread
-- [ ] 6.10 Unanswered-lead reminder cron (every 5 min, business hours, not in quiet hours; once per lead)
+- [x] 6.1 Web Push: VAPID JWT (ES256) + aes128gcm payload encryption with WebCrypto, tested against RFC 8291 vectors
+- [x] 6.2 PWA: manifest (scope /admin), service worker (push + notificationclick), "Enable alerts on this device", push_subscriptions table, prune dead endpoints (404/410)
+- [x] 6.3 Push alerts for new bookings/enquiries alongside SMS/email (respect per-user + global toggles)
+- [x] 6.4 Dashboard: new leads, unread enquiries, jobs today/tomorrow, average first-response time, needs-attention list, bookings by source this week
+- [x] 6.5 Booking detail: schedule date/window (with capacity check), set final price, mark paid (cash/transfer), edit customer details from submitted data ("details differ" → update customer)
+- [x] 6.6 Quick actions: send confirmation (email + SMS), send reminder, request Google review (honours smsOptOut)
+- [x] 6.7 Reply from admin: email or SMS to the customer from the booking/enquiry thread (template optional); enquiry → "replied"
+- [x] 6.8 Manual booking (phone orders) and enquiry → booking conversion
+- [x] 6.9 SMS inbound webhook: STOP/UNSUBSCRIBE → smsOptOut; replies logged to the thread
+- [x] 6.10 Unanswered-lead reminder cron (every 5 min, business hours, not in quiet hours; once per lead)
 
 ## Phase 7 — Deposits
-- [ ] Break down at start of phase
+- [ ] 7.1 Stripe client via fetch (Checkout Session create/retrieve, refunds) + webhook signature verification with WebCrypto (Stripe-Signature, tolerance)
+- [ ] 7.2 Booking API: deposit choice → Checkout Session (expires 1 h, metadata bookingId) → redirect URL; success/cancelled pages
+- [ ] 7.3 Webhook: checkout.session.completed (paid wins), checkout.session.expired (only if pending), charge.refunded; idempotent; owner alerts (deposit paid / not completed)
+- [ ] 7.4 Admin: deposit status, refund (full/partial) via Stripe API
+- [ ] 7.5 Safety-net cron 02:15 Perth: ask Stripe about pending sessions > 2 h
+- [ ] 7.6 Tracking: purchase conversion on success page (once per ref)
 
 ## Phase 8 — Job management & invoicing
 - [ ] Break down at start of phase

@@ -16,6 +16,20 @@ import {
   type EnquiryStatus,
 } from "@/lib/leads/admin-ops";
 import { isRef } from "@/lib/refs";
+import { getServerEnv } from "@/lib/config";
+import { createDb } from "@/lib/db/client";
+import { dollarsToCents } from "@/lib/money-input";
+import { notifyContextFrom } from "@/lib/notify/context";
+import {
+  scheduleBooking,
+  sendBookingMessage,
+  sendReply,
+  setFinalPrice,
+  setPaidMethod,
+  updateCustomerFromBooking,
+  type QuickMessage,
+} from "@/lib/leads/booking-edit";
+import { createManualBooking, type ManualBookingInput } from "@/lib/leads/manual-booking";
 
 const str = (fd: FormData, k: string) => {
   const v = fd.get(k);
@@ -72,4 +86,87 @@ export async function enquiryNoteAction(fd: FormData) {
   const kind = str(fd, "kind") === "call_log" ? "call_log" : "note";
   await addNote(db, { enquiryId: row.enquiry.id }, str(fd, "body"), admin.email, kind);
   redirect(`/admin/inbox/${ref}#thread`);
+}
+
+// ---------------------------------------------------------------- booking edits & messages (Phase 6)
+
+const back = (ref: string, r: { ok: boolean; message?: string; code?: string }, extra = "") =>
+  redirect(
+    `/admin/leads/${ref}?${r.ok ? "saved=1" : `error=${r.code ?? "failed"}&msg=${encodeURIComponent(r.message ?? "Couldn't save")}`}${extra}`,
+  );
+
+export async function scheduleAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const ref = refFrom(fd, "BK");
+  const date = str(fd, "date");
+  const window = str(fd, "window");
+  const r = await scheduleBooking(await getDb(), ref, { date, window }, admin.email, {
+    overrideCapacity: str(fd, "override") === "1",
+  });
+  back(ref, r, r.ok ? "" : `&date=${date}&window=${window}`);
+}
+
+export async function finalPriceAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const ref = refFrom(fd, "BK");
+  const raw = str(fd, "price").trim();
+  const cents = raw === "" ? null : dollarsToCents(raw);
+  if (raw !== "" && cents === null)
+    back(ref, { ok: false, code: "invalid", message: "Enter a price like 420 or 420.50" });
+  back(ref, await setFinalPrice(await getDb(), ref, cents, admin.email));
+}
+
+export async function paidAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const ref = refFrom(fd, "BK");
+  const method = str(fd, "method");
+  if (method !== "cash" && method !== "transfer" && method !== "unpaid")
+    throw new Error("Bad method");
+  back(ref, await setPaidMethod(await getDb(), ref, method, admin.email));
+}
+
+export async function updateCustomerAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const ref = refFrom(fd, "BK");
+  back(ref, await updateCustomerFromBooking(await getDb(), ref, admin.email));
+}
+
+export async function quickMessageAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const ref = refFrom(fd, "BK");
+  const kind = str(fd, "kind") as QuickMessage;
+  if (!["confirmation", "reminder", "review"].includes(kind)) throw new Error("Bad kind");
+  const { env, config } = await getServerEnv();
+  const db = createDb(env.DB);
+  const r = await sendBookingMessage(notifyContextFrom(db, config), ref, kind, admin.email);
+  redirect(
+    `/admin/leads/${ref}?${r.ok ? "sent" : "error=send&msg"}=${encodeURIComponent(r.message)}#thread`,
+  );
+}
+
+export async function replyAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const bookingRef = str(fd, "bookingRef");
+  const enquiryRef = str(fd, "enquiryRef");
+  const channel = str(fd, "channel") === "sms" ? "sms" : "email";
+  if (bookingRef ? !isRef(bookingRef, "BK") : !isRef(enquiryRef, "EQ"))
+    throw new Error("Bad reference");
+  const target = bookingRef ? { bookingRef } : { enquiryRef };
+  const { env, config } = await getServerEnv();
+  const db = createDb(env.DB);
+  const r = await sendReply(
+    notifyContextFrom(db, config),
+    target,
+    channel,
+    str(fd, "subject"),
+    str(fd, "body"),
+    admin.email,
+  );
+  const base = bookingRef ? `/admin/leads/${bookingRef}` : `/admin/inbox/${enquiryRef}`;
+  redirect(`${base}?${r.ok ? "sent" : "error=send&msg"}=${encodeURIComponent(r.message)}#thread`);
+}
+
+export async function manualBookingAction(input: ManualBookingInput) {
+  const admin = await requireAdminAction();
+  return createManualBooking(await getDb(), input, admin.email);
 }

@@ -16,8 +16,9 @@ The **living notes** for this codebase. `BLUEPRINT.md` says *what* to build; thi
 | 3 — Lead pipeline MVP | ✅ Done (2026-10-02). **This is the "launch ads" version** once Section 4 setup + launch checklist are done |
 | 4 — Full public site & SEO | ✅ Done (2026-10-02) |
 | 5 — Admin settings & templates | ✅ Done (2026-10-02) |
-| 6 — Admin leads & inbox (full) | ⏭ Next |
-| 7–10 | Not started — see `TASKS.md` |
+| 6 — Admin leads & inbox (full) | ✅ Done (2026-10-02) |
+| 7 — Deposits | ⏭ Next |
+| 8–10 | Not started — see `TASKS.md` |
 
 Lighthouse mobile after Phase 4 (Worker runtime, local): home 97/100/100/100, vacate service 96/100/100/100, pricing 99/100/100/100, Belmont suburb 97/100/100/100 (perf/a11y/best-practices/SEO).
 
@@ -110,7 +111,13 @@ lib/
   templates.ts          template metadata, SMS segment counter, Spam Act rules, saveTemplate
   users.ts              admin users (never deleted; last-owner / self-lockout guards)
   cron/schedule.ts      cron expression → job names (dependency-free; used by worker.ts)
-  cron/jobs.ts          job implementations (access-note wipe, rate-counter cleanup, …)
+  cron/jobs.ts          job implementations (access-note wipe, rate-counter cleanup, unanswered reminders)
+  push/webpush.ts       Web Push (RFC 8291 aes128gcm + RFC 8292 VAPID) with WebCrypto only
+  push/admin-push.ts    save/remove subscriptions, pushToAdmins (deletes dead endpoints)
+  leads/booking-edit.ts schedule, final price, paid method, update customer, quick messages, replies
+  leads/manual-booking.ts phone bookings + enquiry → booking conversion
+  leads/dashboard.ts, leads/source.ts   dashboard numbers, lead source classification
+  leads/sms-inbound.ts  STOP/START handling + logging replies to the lead
   data/content.ts       services, faqs, policies, reviews, media loaders; suburbs from seed
   data/suburbs.ts, suburbs.ts   suburb lookup + indexing rule (≥150 words, unique) + nearby links
   seo/jsonld.ts         LocalBusiness (no address), Service, FAQPage, BreadcrumbList builders
@@ -124,6 +131,9 @@ app/admin/              leads, inbox (+ detail pages), actions.ts (server action
 app/admin/settings/     index, [section] (generic flat settings incl. business), pricing, booking, home,
                         templates (+ [key]), users — each with its own actions.ts
 app/api/cron/[job]      runs one job; requires the CRON_SECRET header (404 otherwise)
+app/api/sms/inbound     SMS provider reply webhook (?secret=SMS_INBOUND_SECRET)
+app/admin/page.tsx      dashboard;  app/admin/leads/new  phone booking (+ ?enquiry=EQ-… to convert)
+app/admin-manifest.webmanifest   admin-only PWA manifest;  public/sw.js  service worker (push)
 worker.ts               custom Worker entry: OpenNext fetch + scheduled() → /api/cron/<job>
 components/site/        calculator, booking wizard, enquiry form, turnstile, tracking scripts
 components/admin/       nav, thread, ui (status colours)
@@ -201,6 +211,8 @@ Needs a Cloudflare account on **Workers Paid (US$5/month)**.
    - `SMS_PROVIDER` (`clicksend` or `twilio`), `SMS_API_USERNAME`, `SMS_API_KEY`, `SMS_FROM`
    - `CF_ACCESS_TEAM_DOMAIN` (e.g. `yourteam.cloudflareaccess.com`), `CF_ACCESS_AUD` (from step 9)
    - `CRON_SECRET` — any long random string (≥16 chars), e.g. `openssl rand -hex 24`. Scheduled jobs don't run without it.
+   - Push alerts: run `npx tsx scripts/vapid-keys.ts` once. Put `NEXT_PUBLIC_VAPID_PUBLIC_KEY` in the Workers Builds build variables, and `VAPID_PRIVATE_KEY` + `VAPID_SUBJECT` (`mailto:you@domain`) as secrets. Same keys for staging is fine.
+   - SMS replies/STOP: `SMS_INBOUND_SECRET` (long random string); set the provider's inbound URL to `https://<site>/api/sms/inbound?secret=<that>` (ClickSend: Messaging → Inbound rules → URL; Twilio: phone number → Messaging webhook).
    Production must have `ALERTS_MODE=send` (it does, in `wrangler.jsonc`). Missing email/SMS secrets don't break bookings — the message shows as "failed" in the admin thread.
 8. **Owner phones for SMS alerts:** Admin → Settings → Users → Edit → "Mobile for lead alerts".
 9. **Cloudflare Access (admin login):** Zero Trust dashboard → Access → Applications → Add → Self-hosted.
@@ -210,7 +222,8 @@ Needs a Cloudflare account on **Workers Paid (US$5/month)**.
    - Copy the **Application Audience (AUD) tag** → `CF_ACCESS_AUD` secret.
    - Every admin must be in BOTH this policy and `admin_users` (seed/admin-users.json now, Users page later).
    - Do the same for the staging Worker's URL with its own application.
-10. **Custom domain:** Worker → Settings → Domains & Routes (Phase 10).
+10. **Phone alerts (each owner, each phone):** open the admin on the phone → on iPhone first Share → *Add to Home Screen* and open it from the icon → tap **🔔 Enable alerts on this device**. Test by submitting a booking on staging (staging logs only — test real delivery on production with a test booking).
+11. **Custom domain:** Worker → Settings → Domains & Routes (Phase 10).
 
 ---
 
@@ -259,6 +272,13 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - **2026-10-02 — Users are deactivated, never deleted** (audit history keeps their email). You can't deactivate/demote yourself; there's always ≥1 active owner. Only the "owner" role is offered in the UI (staff role exists in data, per blueprint).
 - **2026-10-02 — Lead-alert emails come from Settings → Notifications (list of addresses); SMS/push alerts are per user** (Users page). `admin_users.receive_email_alerts` exists in the schema but isn't used.
 - **2026-10-02 — Cron design:** `worker.ts` is the Worker entry (`wrangler.jsonc` `main`). Its `scheduled()` maps the cron expression to job names (`lib/cron/schedule.ts`) and POSTs to `/api/cron/<job>` on the same Worker with `CRON_SECRET`. All job code stays inside the Next app (same aliases, same tests). Staging has `triggers.crons: []`.
+- **2026-10-02 — Web Push implemented with WebCrypto** (`lib/push/webpush.ts`), verified byte-for-byte against the RFC 8291 test vector; `web-push` npm needs Node crypto. Dead subscriptions (404/410) are deleted on send.
+- **2026-10-02 — Admin is the installable app, not the public site:** manifest served at `/admin-manifest.webmanifest` and linked only from the admin layout; service worker at `/sw.js` registered with scope `/admin/` (public path, so Cloudflare Access doesn't block it).
+- **2026-10-02 — Push respects quiet hours** like owner SMS (both would wake the owner). Email still arrives; the reminder cron catches overnight leads at opening time.
+- **2026-10-02 — Reminders: once per lead, max 3 days back**, only in business hours and outside quiet hours; "already reminded" = a message with an `owner_unanswered_reminder_*` template key on that lead.
+- **2026-10-02 — Manual (phone) bookings skip the public date/suburb rules** and record `heardFrom = "Phone"`; they're audited as the owner. Converting an enquiry links it (`enquiries.booking_id`) and closes it.
+- **2026-10-02 — Inbound SMS webhook uses a URL secret** (works for ClickSend and Twilio alike) instead of provider-specific signatures. STOP-type replies opt out (exact-word match, so "can you stop by" doesn't), START opts back in; STOP from unknown numbers is remembered by creating a customer row.
+- **2026-10-02 — SMS/email dates formatted by hand** ("Fri 9 Oct") — `Intl` output differed between Node and the expected format (commas) and could differ again in workerd.
 - **2026-10-02 — Prettier ignores `*.md`.** It reflowed the big tables in BLUEPRINT.md into unreadable diffs. Docs are hand-formatted.
 - **2026-10-02 — CI (GitHub Actions) runs typecheck, lint, format, unit tests and the OpenNext build.** Deploying is Workers Builds' job, not CI's.
 
@@ -327,6 +347,8 @@ Newest at the bottom. Format: **date — decision.** Reason.
 | Service descriptions, checklists, FAQs, home text | `seed/services.json`, `seed/faqs.json`, `seed/settings.json` → `home` — owner to review wording/claims (e.g. "Free re-clean" trust point) | Before launch |
 | About page text | `seed/settings.json` → `about` (contains an "Owner to update" line that shows publicly until replaced) | Before launch |
 | Suburb intros | `seed/suburbs.json` — owner to check local details are accurate | Before launch |
+| VAPID keys, SMS inbound secret | Section 4 step 7 | Before relying on phone alerts / STOP |
+| Real-device push test (iPhone + Android) | Section 4 step 10 — can't be automated here (needs real push services) | Before launch |
 | Message templates | `seed/templates.json` (editable in admin from Phase 5) | Review before launch |
 | Brand colours | `app/globals.css` | Phase 3 |
 | D1 database IDs | `wrangler.jsonc` | First deploy |
@@ -339,6 +361,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 Newest at the top. One line per task: date, task id, what changed.
 
+- **2026-10-02 — Phase 6 (tasks 6.1–6.10).** Web Push (WebCrypto, RFC-vector tested) + admin PWA (manifest, service worker, enable-alerts toggle, subscriptions table) and push on new leads; dashboard (new leads, today/tomorrow jobs, avg first response, needs-attention, leads by source); booking detail: schedule with capacity, final price, paid method, update customer from submitted details, send confirmation/reminder/review request, free-text SMS/email replies; inbox reply + convert to booking; phone bookings; inbound SMS webhook (STOP/START, replies logged); unanswered-lead reminder cron (every 5 min in business hours). 212 tests + 16 E2E passing twice on the Worker runtime.
 - **2026-10-02 — Phase 5 (tasks 5.1–5.9).** Admin settings: index, business info (hours, GST, socials, review link, bank details), pricing editor (grid, extras, multipliers, regular hours, add-ons, live old-vs-new preview), booking settings (deposit, windows, capacity, blocked dates, retention), notifications, home/about/SEO/tracking/invoicing; history + restore everywhere; template editor (variables, preview, SMS parts counter, Spam Act checks, send test to me); users (add/edit/deactivate with lockout guards). Custom Worker entry with Cron Triggers → `/api/cron/<job>` (CRON_SECRET): access-note wipe + rate-counter cleanup. Fixed: emails with stray spaces (phone keyboards) were rejected on public forms and the users page. 176 unit/integration tests + 10 E2E (incl. "owner changes a price on their phone and it's live", 3 stable runs on the Worker runtime).
 - **2026-10-02 — Phase 4 (tasks 4.1–4.7).** Suburb pages + /areas (6 indexed, rest noindex), property managers page (PM pack from media), about (settings key) and FAQ pages; JSON-LD (LocalBusiness, Service, FAQPage, BreadcrumbList); sitemap + robots; default OG image + Twitter cards; reviews + media tables and R2 media route; real-reviews-only section; mobile CTA bar hidden on booking pages. Lighthouse mobile 96–100 on all audited pages. 143 tests + 6 E2E passing on the Worker runtime.
 - **2026-10-02 — Phase 3 (tasks 3.1–3.15).** Pricing engine (all services, 24 tests) + "from" prices; content tables (services/faqs/policies) with seed content and draft policies; public pages (home, service pages, pricing calculator, 6-step booking wizard, quote/contact forms, thank-you, policies, 404); booking & enquiry APIs with burst + daily rate limits, Turnstile, server-side price recalculation, customer matching; notifications (templates, Resend email, ClickSend/Twilio SMS, sandbox mode, quiet hours, message log); tracking tags + UTM capture + conversion events; Cloudflare Access JWT auth; admin leads & inbox (lists, filters, search, detail, status changes with capacity check, notes/call logs). Tests: 137 unit/integration (real D1) + 6 Playwright E2E (phone + desktop, full booking through admin), passing on both `next dev` and the Worker runtime.

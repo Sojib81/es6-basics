@@ -29,7 +29,15 @@ export default async function LeadsPage(props: PageProps<"/admin/leads">) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <h1 className="text-ink text-xl font-bold">Leads & bookings</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-ink text-xl font-bold">Leads & bookings</h1>
+        <Link
+          href="/admin/leads/new"
+          className="bg-brand rounded-lg px-3 py-2 text-sm font-semibold text-white"
+        >
+          + Phone booking
+        </Link>
+      </div>
       <form className="flex gap-2" role="search">
         <input type="hidden" name="status" value={status} />
         <label htmlFor="q" className="sr-only">

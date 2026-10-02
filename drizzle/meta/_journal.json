@@ -22,6 +22,13 @@
       "when": 1790910332679,
       "tag": "0002_reviews_media",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1790912765521,
+      "tag": "0003_push_subscriptions",
+      "breakpoints": true
     }
   ]
 }

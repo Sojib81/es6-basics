@@ -6,6 +6,7 @@ import { cleanupRateCounters, JOB_HANDLERS, wipeAccessNotes } from "./jobs";
 import { ALL_JOBS, CRON_JOBS } from "./schedule";
 
 let t: TestDb;
+const jc = () => ({ db: t.db, notify: { db: t.db, mode: "log" as const, email: {}, sms: null } });
 beforeAll(async () => {
   t = await createTestDb();
 }, 60_000);
@@ -43,14 +44,14 @@ describe("wipeAccessNotes (retention 14 days in seed)", () => {
     await booking("cxl", "cancelled", "2026-10-02T00:00:00.000Z"); // cancelled, 18 days → wipe
     await booking("recent", "completed", "2026-10-15T00:00:00.000Z"); // 5 days → keep
     await booking("open", "new", "2026-09-01T00:00:00.000Z"); // still open → keep
-    expect(await wipeAccessNotes(t.db, now)).toBe("access notes: wiped 2");
+    expect(await wipeAccessNotes(jc(), now)).toBe("access notes: wiped 2");
     const rows = Object.fromEntries((await t.db.select().from(bookings)).map((b) => [b.id, b]));
     expect(rows.old.accessNotes).toBeNull();
     expect(rows.old.accessNotesWipedAt).toBe(now.toISOString());
     expect(rows.cxl.accessNotes).toBeNull();
     expect(rows.recent.accessNotes).toBe("Keys with agent");
     expect(rows.open.accessNotes).toBe("Keys with agent");
-    expect(await wipeAccessNotes(t.db, now)).toBe("access notes: nothing to wipe");
+    expect(await wipeAccessNotes(jc(), now)).toBe("access notes: nothing to wipe");
   });
 });
 
@@ -60,7 +61,7 @@ describe("cleanupRateCounters", () => {
       { key: "a", count: 1, expiresAt: "2026-10-19T00:00:00.000Z" },
       { key: "b", count: 1, expiresAt: "2026-10-22T00:00:00.000Z" },
     ]);
-    expect(await cleanupRateCounters(t.db, now)).toBe("rate counters: deleted 1");
+    expect(await cleanupRateCounters(jc(), now)).toBe("rate counters: deleted 1");
     expect((await t.db.select().from(rateCounters)).map((r) => r.key)).toEqual(["b"]);
   });
 });

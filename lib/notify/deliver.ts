@@ -9,12 +9,15 @@ import { messages, messageTemplates } from "@/lib/db/schema";
 import { sendEmailResend } from "./email";
 import { renderTemplate, type TemplateVars } from "./render";
 import type { SmsProvider } from "./sms";
+import type { VapidConfig } from "@/lib/push/admin-push";
 
 export type NotifyContext = {
   db: Db;
   mode: "send" | "log";
   email: { apiKey?: string; from?: string; replyTo?: string };
   sms: SmsProvider | null;
+  /** Web Push (VAPID). Null → push alerts are logged as failed. */
+  push?: VapidConfig | null;
   fetchImpl?: typeof fetch;
 };
 

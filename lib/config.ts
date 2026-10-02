@@ -25,6 +25,9 @@ export const runtimeConfigSchema = z
     CF_ACCESS_TEAM_DOMAIN: optionalSecret,
     CF_ACCESS_AUD: optionalSecret,
     DEV_ADMIN_EMAIL: optionalSecret,
+    VAPID_PRIVATE_KEY: optionalSecret,
+    SMS_INBOUND_SECRET: optionalSecret,
+    VAPID_SUBJECT: optionalSecret,
   })
   .refine((c) => c.APP_ENV === "production" || c.ALERTS_MODE === "log", {
     message: "ALERTS_MODE must be 'log' outside production so staging/local never text the owners",

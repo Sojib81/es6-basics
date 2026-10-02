@@ -14,5 +14,13 @@ export function notifyContextFrom(db: Db, config: RuntimeConfig): NotifyContext 
       replyTo: config.EMAIL_REPLY_TO,
     },
     sms: createSmsProvider(config),
+    push:
+      config.VAPID_PRIVATE_KEY && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        ? {
+            publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+            privateKey: config.VAPID_PRIVATE_KEY,
+            subject: config.VAPID_SUBJECT ?? "mailto:admin@example.com",
+          }
+        : null,
   };
 }

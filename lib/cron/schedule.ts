@@ -6,6 +6,8 @@
 export const CRON_JOBS: Record<string, string[]> = {
   // 02:00 Perth daily
   "0 18 * * *": ["wipe-access-notes", "cleanup-rate-counters"],
+  // Every 5 min, 07:00–17:55 Perth (the job also checks business hours + quiet hours from settings)
+  "*/5 23,0-9 * * *": ["unanswered-reminders"],
 };
 
 export const ALL_JOBS = [...new Set(Object.values(CRON_JOBS).flat())];

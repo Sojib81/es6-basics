@@ -2,11 +2,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type Item = { href: string; label: string; badge?: number };
+type Item = { href: string; label: string; badge?: number; exact?: boolean };
 
 export function AdminNav({ items }: { items: Item[] }) {
   const path = usePathname();
-  const active = (href: string) => path === href || path.startsWith(`${href}/`);
+  const active = (i: Item) => path === i.href || (!i.exact && path.startsWith(`${i.href}/`));
   const badge = (n?: number) =>
     n ? (
       <span
@@ -29,7 +29,7 @@ export function AdminNav({ items }: { items: Item[] }) {
               <Link
                 href={i.href}
                 className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium ${
-                  active(i.href) ? "bg-brand text-white" : "text-ink hover:bg-white"
+                  active(i) ? "bg-brand text-white" : "text-ink hover:bg-white"
                 }`}
               >
                 {i.label}
@@ -53,7 +53,7 @@ export function AdminNav({ items }: { items: Item[] }) {
               <Link
                 href={i.href}
                 className={`flex h-16 flex-col items-center justify-center text-xs font-semibold ${
-                  active(i.href) ? "text-brand" : "text-muted"
+                  active(i) ? "text-brand" : "text-muted"
                 }`}
               >
                 <span className="flex items-center">
