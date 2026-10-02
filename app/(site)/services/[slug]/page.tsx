@@ -8,7 +8,15 @@ import { Reviews } from "@/components/site/reviews";
 import { siteUrl } from "@/lib/config";
 import { FaqList, Section } from "@/components/site/section";
 import { getBusinessInfo } from "@/lib/data/business";
-import { getFaqs, getPublishedReviews, getServiceBySlug, getSuburbs } from "@/lib/data/content";
+import {
+  getFaqs,
+  getMediaById,
+  getPublishedReviews,
+  getServiceBySlug,
+  getSuburbs,
+  mediaUrl,
+} from "@/lib/data/content";
+import Image from "next/image";
 import { getSetting } from "@/lib/data/settings";
 import { getServiceOptions, pageMetadata } from "@/lib/data/site";
 import { formatCents } from "@/lib/money";
@@ -39,6 +47,7 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
     getPublishedReviews(3),
   ]);
   const base = siteUrl();
+  const hero = await getMediaById(service.heroMediaId);
   const from = priceFromCents(service.serviceKey, pricing, service.priceFromCents);
   const calculable = service.bookable && service.serviceKey && service.serviceKey !== "office";
 
@@ -94,6 +103,18 @@ export default async function ServicePage(props: PageProps<"/services/[slug]">) 
           </a>
         </div>
       </Section>
+      {hero && (
+        <div className="mx-auto max-w-6xl px-4 pt-8">
+          <Image
+            src={mediaUrl(hero)}
+            alt={hero.alt}
+            width={hero.width ?? 1600}
+            height={hero.height ?? 900}
+            sizes="(max-width: 1200px) 100vw, 1152px"
+            className="h-auto max-h-[28rem] w-full rounded-xl object-cover"
+          />
+        </div>
+      )}
 
       <Section>
         <div className="grid gap-10 md:grid-cols-2">

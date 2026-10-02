@@ -37,7 +37,9 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             { href: "/admin/calendar", label: "Calendar" },
             { href: "/admin/customers", label: "Customers", mobile: false },
             { href: "/admin/invoices", label: "Invoices", mobile: false },
+            { href: "/admin/content", label: "Content", mobile: false },
             { href: "/admin/settings", label: "Settings", mobile: false },
+            { href: "/admin/history", label: "History", mobile: false },
             { href: "/admin/more", label: "More", desktop: false },
           ]}
         />

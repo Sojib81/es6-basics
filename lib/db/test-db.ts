@@ -34,6 +34,8 @@ async function execAll(d1: D1Database, statements: string[]) {
 export type TestDb = {
   db: Db;
   d1: D1Database;
+  /** Local R2 bucket (MEDIA binding) for media tests. */
+  media: R2Bucket;
   reset: () => Promise<void>;
   seed: (input?: SeedInput) => Promise<void>;
   dispose: () => Promise<void>;
@@ -70,5 +72,5 @@ export async function createTestDb(): Promise<TestDb> {
   };
 
   await reset();
-  return { db, d1, reset, seed, dispose: () => proxy.dispose() };
+  return { db, d1, media: proxy.env.MEDIA, reset, seed, dispose: () => proxy.dispose() };
 }

@@ -91,12 +91,17 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - [x] 8.7 Invoice list (unpaid/overdue/paid this month) + CSV export for BAS
 
 ## Phase 9 — Light content admin
-- [ ] 9.1 Media library: upload to R2 (images resized client-side to ≤1600 px WebP, PDFs for the PM pack), alt text required, delete (if unused); OG image + logo pickers
-- [ ] 9.2 Services editor (title, summary, body, checklist, not included, price-from override, bookable, capacity weight, order, active, SEO fields)
-- [ ] 9.3 FAQ editor (add/edit/reorder/activate, general or per service)
-- [ ] 9.4 Policies editor
-- [ ] 9.5 Reviews: add real reviews (name, suburb, text, rating, date, source), publish/unpublish
-- [ ] 9.6 History page: audit log with before/after diff, filter by entity/user; restore for settings
+- [x] 9.1 Media library: upload to R2 (images resized client-side to ≤1600 px WebP, PDFs for the PM pack), alt text required, delete (if unused); OG image + logo pickers
+- [x] 9.2 Services editor (title, summary, body, checklist, not included, price-from override, bookable, capacity weight, order, active, SEO fields)
+- [x] 9.3 FAQ editor (add/edit/reorder/activate, general or per service)
+- [x] 9.4 Policies editor
+- [x] 9.5 Reviews: add real reviews (name, suburb, text, rating, date, source), publish/unpublish
+- [x] 9.6 History page: audit log with before/after diff, filter by entity/user; restore for settings
 
 ## Phase 10 — Hardening & launch QA
-- [ ] Break down at start of phase
+- [ ] 10.1 Security headers (CSP incl. GA/Meta/Turnstile/Stripe, HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy) via proxy/middleware or next.config headers
+- [ ] 10.2 Friendly 500 page (global-error) + error boundaries for admin
+- [ ] 10.3 Weekly backup cron: export all tables to R2 as JSON (keep last 8), excluding access notes; document D1 Time Travel restore
+- [ ] 10.4 Security review pass (auth on every admin route/action, input limits, secrets never logged/exposed)
+- [ ] 10.5 Final Lighthouse audit (public pages) + accessibility checks of admin
+- [ ] 10.6 Launch runbook in DEV_NOTES (deploy order, migrations, secrets checklist, go-live tests, rollback)

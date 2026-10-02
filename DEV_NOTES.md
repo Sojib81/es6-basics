@@ -19,8 +19,8 @@ The **living notes** for this codebase. `BLUEPRINT.md` says *what* to build; thi
 | 6 — Admin leads & inbox (full) | ✅ Done (2026-10-02) |
 | 7 — Deposits | ✅ Done (2026-10-02) — needs Stripe keys + webhook (Section 4) to take real payments |
 | 8 — Job management & invoicing | ✅ Done (2026-10-02) |
-| 9 — Light content admin | ⏭ Next |
-| 10 | Not started — see `TASKS.md` |
+| 9 — Light content admin | ✅ Done (2026-10-02) |
+| 10 — Hardening & launch QA | ⏭ Next |
 
 Lighthouse mobile after Phase 4 (Worker runtime, local): home 97/100/100/100, vacate service 96/100/100/100, pricing 99/100/100/100, Belmont suburb 97/100/100/100 (perf/a11y/best-practices/SEO).
 
@@ -126,6 +126,9 @@ lib/
   jobs.ts               calendar jobs, assignments, "my jobs today"
   customers-admin.ts    customer list/search/profile/edit
   csv.ts, exports.ts, export-route.ts   CSV (formula-injection safe) for bookings + invoices
+  content-admin.ts      services/FAQs/policies/reviews edits (full before/after audit) + restoreFromAudit
+  media.ts              R2 uploads (type sniffed from bytes, ≤10 MB, alt required), usage check, delete
+  audit-diff.ts         "what changed" lines for the History page
   data/content.ts       services, faqs, policies, reviews, media loaders; suburbs from seed
   data/suburbs.ts, suburbs.ts   suburb lookup + indexing rule (≥150 words, unique) + nearby links
   seo/jsonld.ts         LocalBusiness (no address), Service, FAQPage, BreadcrumbList builders
@@ -148,6 +151,9 @@ app/admin-manifest.webmanifest   admin-only PWA manifest;  public/sw.js  service
 app/admin/calendar, customers(/[id]), invoices(/[id]), export(+ bookings.csv, invoices.csv), more
 app/invoice/[token]     customer's printable invoice (unguessable link, no site chrome/tracking)
 components/invoice-document.tsx  the invoice layout (admin preview + customer page)
+app/admin/content/      services(/[id]), faqs, policies(/[slug]), reviews, media;  app/admin/history (undo)
+app/api/admin/media     multipart upload endpoint (admin + same-origin)
+components/admin/media-uploader.tsx   browser-side resize to ≤1600 px WebP before upload
 worker.ts               custom Worker entry: OpenNext fetch + scheduled() → /api/cron/<job>
 components/site/        calculator, booking wizard, enquiry form, turnstile, tracking scripts
 components/admin/       nav, thread, ui (status colours)
@@ -310,6 +316,10 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - **2026-10-02 — "My jobs today" includes unassigned jobs** so nothing slips through when nobody has been assigned.
 - **2026-10-02 — CSV exports neutralise formulas** (`= + - @` → leading apostrophe) and use local phone format (`0412 345 678`) so Excel doesn't mangle them; UTF-8 BOM so "—" shows correctly.
 - **2026-10-02 — Mobile admin nav: Home, Leads, Inbox, Calendar, More** (More → Customers, Invoices, Settings, History, Exports). Desktop sidebar shows everything.
+- **2026-10-02 — Content edits store the FULL before/after row** in the audit log, so History can "Undo this change" for settings, services, FAQs, policies and reviews (an undo is itself audited and can be undone). Bookings/invoices/users aren't undoable from History — they have their own controls.
+- **2026-10-02 — Service slugs are read-only** in the admin (changing them would break links, ads and SEO). Ask a developer if a URL really must change (and add a redirect).
+- **2026-10-02 — Uploads go through a route handler (`/api/admin/media`), not a server action** — server actions have a ~1 MB body limit; PDFs can be bigger. Max 10 MB. File type is decided from the first bytes (PNG/JPEG/WebP/PDF), never the name. Images are resized to ≤1600 px WebP in the browser (no paid image service). Files used as logo / share image / service photo can't be deleted.
+- **2026-10-02 — Reviews:** owners paste real reviews word for word (with source/date); the site shows the section only when ≥1 is published; future dates are refused.
 - **2026-10-02 — Prettier ignores `*.md`.** It reflowed the big tables in BLUEPRINT.md into unreadable diffs. Docs are hand-formatted.
 - **2026-10-02 — CI (GitHub Actions) runs typecheck, lint, format, unit tests and the OpenNext build.** Deploying is Workers Builds' job, not CI's.
 
@@ -360,6 +370,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - E2E runs against staging or local, **never production** (it creates bookings and changes settings).
 - Settings E2E (`e2e/admin-settings.spec.ts`) runs in its own Playwright project *after* the others, because it changes site-wide state (prices). Tests that change settings must put them back exactly as found, and must not assume what "Restore previous version" lands on (it may be a version from an earlier run). Wait for `networkidle` before typing into client forms, or input can be lost to hydration.
 - Don't hard-code prices in E2E; read the calculator's price and check it carries through.
+- Files matching `admin-settings*` run in the serial "admin-settings" project, but those files can still run in parallel with *each other*. When undoing from History, target the exact change (e.g. the row mentioning `logoMediaId`), never "the first Undo button".
 - When killing dev servers from a script, don't `pkill -f "wrangler dev"` in a shell whose own command line contains that text — it kills itself.
 - Run E2E locally: `npm run db:migrate:local && npm run db:seed:local`, then `npm run dev` (or `npm run preview` for the Worker runtime) and `PW_CHROMIUM_PATH=… E2E_BASE_URL=http://localhost:3000 npm run test:e2e`. The admin part needs `DEV_ADMIN_EMAIL` in `.dev.vars` matching a seeded admin.
 - `vitest.config.mts` is `.mts` on purpose (ESM config without `"type": "module"`).
@@ -396,6 +407,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 Newest at the top. One line per task: date, task id, what changed.
 
+- **2026-10-02 — Phase 9 (tasks 9.1–9.6).** Content admin: services editor (text, checklists, photo, price-from override, capacity weight, SEO), FAQs (add/edit/reorder/hide/delete), policies, real reviews (publish/unpublish), media library on R2 (browser-side WebP resize, PDFs for the PM pack, alt text, use as logo/share image, in-use protection); History page with readable diffs and undo; logo in the site header and service photos. 248 tests + 25 E2E passing three times on the Worker runtime.
 - **2026-10-02 — Phase 8 (tasks 8.1–8.7).** Calendar (week view, capacity bars per window, blocked days, service colours), team assignment + "my jobs today" with directions, customers list/search/profile/edit (opt-out toggle), invoices (atomic numbering, GST, deposit deducted, draft/sent/paid/void, email link, printable customer page), invoice + booking CSV exports, mobile "More" menu. 240 tests + 21 E2E passing twice on the Worker runtime.
 - **2026-10-02 — Phase 7 (tasks 7.1–7.6).** Deposits: Stripe fetch client + WebCrypto webhook verification; Checkout from the booking form (fallback to pay-later if unavailable); webhook (completed/async-succeeded/expired/refunded) with idempotent "paid wins" rules and owner SMS; success page (double-checks Stripe, purchase conversion) + cancelled page with "pay again"; admin card-deposit panel with confirmed partial/full refunds; 02:15 Perth safety-net cron. 224 tests + 17 E2E passing twice on the Worker runtime. Real card payments not testable here (no Stripe account/network) — see Section 4 step 10.
 - **2026-10-02 — Phase 6 (tasks 6.1–6.10).** Web Push (WebCrypto, RFC-vector tested) + admin PWA (manifest, service worker, enable-alerts toggle, subscriptions table) and push on new leads; dashboard (new leads, today/tomorrow jobs, avg first response, needs-attention, leads by source); booking detail: schedule with capacity, final price, paid method, update customer from submitted details, send confirmation/reminder/review request, free-text SMS/email replies; inbox reply + convert to booking; phone bookings; inbound SMS webhook (STOP/START, replies logged); unanswered-lead reminder cron (every 5 min in business hours). 212 tests + 16 E2E passing twice on the Worker runtime.

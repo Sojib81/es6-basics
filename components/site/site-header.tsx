@@ -1,9 +1,12 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { BusinessInfo } from "@/lib/data/business";
 import { formatAuPhone } from "@/lib/phone";
 import { mainNav } from "./nav";
 
-export function SiteHeader({ business }: { business: BusinessInfo }) {
+export type Logo = { src: string; alt: string; width: number; height: number } | null;
+
+export function SiteHeader({ business, logo }: { business: BusinessInfo; logo?: Logo }) {
   return (
     <header className="border-line sticky top-0 z-40 border-b bg-white/95 backdrop-blur">
       <a
@@ -14,7 +17,18 @@ export function SiteHeader({ business }: { business: BusinessInfo }) {
       </a>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <Link href="/" className="text-brand text-lg font-bold">
-          {business.businessName}
+          {logo ? (
+            <Image
+              src={logo.src}
+              alt={business.businessName}
+              width={logo.width}
+              height={logo.height}
+              priority
+              className="h-10 w-auto"
+            />
+          ) : (
+            business.businessName
+          )}
         </Link>
         <nav aria-label="Main" className="hidden md:block">
           <ul className="flex items-center gap-6 text-sm font-medium">

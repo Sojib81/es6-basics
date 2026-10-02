@@ -4,6 +4,11 @@ import { requireAdmin } from "@/lib/auth/admin";
 const LINKS = [
   { href: "/admin/customers", title: "Customers", text: "Everyone who's booked or enquired" },
   { href: "/admin/invoices", title: "Invoices", text: "Create, send and track invoices" },
+  {
+    href: "/admin/content",
+    title: "Website content",
+    text: "Services, FAQs, reviews, photos, policies",
+  },
   { href: "/admin/settings", title: "Settings", text: "Prices, hours, messages, users" },
   { href: "/admin/history", title: "History", text: "Every change, with restore" },
   { href: "/admin/export", title: "Exports", text: "Bookings and invoices as CSV" },
