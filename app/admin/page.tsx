@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ago, Card } from "@/components/admin/ui";
 import { requireAdmin } from "@/lib/auth/admin";
+import { myJobs } from "@/lib/jobs";
+import { perthDateString } from "@/lib/time";
 import { getSetting } from "@/lib/data/settings";
 import { getDb } from "@/lib/db/client";
 import { getDashboard } from "@/lib/leads/dashboard";
@@ -31,9 +33,14 @@ function Stat({
 }
 
 export default async function Dashboard() {
-  await requireAdmin();
+  const me = await requireAdmin();
   const now = new Date();
-  const [d, booking] = await Promise.all([getDashboard(await getDb(), now), getSetting("booking")]);
+  const db = await getDb();
+  const [d, booking, mine] = await Promise.all([
+    getDashboard(db, now),
+    getSetting("booking"),
+    myJobs(db, me.email, perthDateString(now)),
+  ]);
   const windowLabel = (id: string | null) =>
     booking.timeWindows.find((w) => w.id === id)?.label ?? id ?? "";
   const attention = [
@@ -89,6 +96,39 @@ export default async function Dashboard() {
                     {ago(a.at, now)}
                   </span>
                 </Link>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {mine.length > 0 && (
+        <Card title={`My jobs today (${mine.length})`}>
+          <ul className="space-y-2">
+            {mine.map((j) => (
+              <li key={j.id}>
+                <Link href={`/admin/leads/${j.ref}`} className="bg-surface block rounded-lg p-3">
+                  <p className="font-semibold">
+                    {windowLabel(j.scheduledWindow)} · {SERVICE_LABELS[j.service]}
+                  </p>
+                  <p className="text-sm">
+                    {j.address}, {j.suburb}
+                  </p>
+                  <p className="text-muted text-sm">
+                    {j.siteContactName ?? j.submittedName}
+                    {j.assignees.length === 0 && " · not assigned yet"}
+                  </p>
+                </Link>
+                {j.address && (
+                  <a
+                    className="text-brand mt-1 inline-block text-sm underline"
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${j.address}, ${j.suburb} WA`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Directions
+                  </a>
+                )}
               </li>
             ))}
           </ul>

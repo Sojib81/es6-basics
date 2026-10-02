@@ -31,6 +31,8 @@ import {
 } from "@/lib/leads/booking-edit";
 import { createManualBooking, type ManualBookingInput } from "@/lib/leads/manual-booking";
 import { refundDeposit } from "@/lib/leads/deposits";
+import { createInvoiceFromBooking } from "@/lib/invoices";
+import { setAssignees } from "@/lib/jobs";
 
 const str = (fd: FormData, k: string) => {
   const v = fd.get(k);
@@ -190,4 +192,20 @@ export async function refundAction(fd: FormData) {
   redirect(
     `/admin/leads/${ref}?${r.ok ? "sent" : "error=refund&msg"}=${encodeURIComponent(r.message)}`,
   );
+}
+
+export async function assignAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const ref = refFrom(fd, "BK");
+  const emails = fd.getAll("assignee").filter((v): v is string => typeof v === "string");
+  const r = await setAssignees(await getDb(), ref, emails, admin.email);
+  back(ref, { ok: r.ok, message: r.message });
+}
+
+export async function createInvoiceAction(fd: FormData) {
+  const admin = await requireAdminAction();
+  const ref = refFrom(fd, "BK");
+  const r = await createInvoiceFromBooking(await getDb(), ref, admin.email);
+  if (!r.ok) back(ref, { ok: false, code: "invoice", message: r.message });
+  else redirect(`/admin/invoices/${r.invoice.id}${r.existing ? "?existing=1" : ""}`);
 }

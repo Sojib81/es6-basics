@@ -18,8 +18,9 @@ The **living notes** for this codebase. `BLUEPRINT.md` says *what* to build; thi
 | 5 — Admin settings & templates | ✅ Done (2026-10-02) |
 | 6 — Admin leads & inbox (full) | ✅ Done (2026-10-02) |
 | 7 — Deposits | ✅ Done (2026-10-02) — needs Stripe keys + webhook (Section 4) to take real payments |
-| 8 — Job management & invoicing | ⏭ Next |
-| 9–10 | Not started — see `TASKS.md` |
+| 8 — Job management & invoicing | ✅ Done (2026-10-02) |
+| 9 — Light content admin | ⏭ Next |
+| 10 | Not started — see `TASKS.md` |
 
 Lighthouse mobile after Phase 4 (Worker runtime, local): home 97/100/100/100, vacate service 96/100/100/100, pricing 99/100/100/100, Belmont suburb 97/100/100/100 (perf/a11y/best-practices/SEO).
 
@@ -121,6 +122,10 @@ lib/
   leads/sms-inbound.ts  STOP/START handling + logging replies to the lead
   stripe.ts             Stripe over fetch (Checkout, retrieve, refunds) + webhook signature check (WebCrypto)
   leads/deposits.ts     startDeposit, webhook event handling (paid wins, idempotent), refunds, safety net
+  invoices.ts           create from booking (GST ÷11, deposit deducted), atomic numbering, paid/void/sent, sendInvoice
+  jobs.ts               calendar jobs, assignments, "my jobs today"
+  customers-admin.ts    customer list/search/profile/edit
+  csv.ts, exports.ts, export-route.ts   CSV (formula-injection safe) for bookings + invoices
   data/content.ts       services, faqs, policies, reviews, media loaders; suburbs from seed
   data/suburbs.ts, suburbs.ts   suburb lookup + indexing rule (≥150 words, unique) + nearby links
   seo/jsonld.ts         LocalBusiness (no address), Service, FAQPage, BreadcrumbList builders
@@ -140,6 +145,9 @@ app/api/public/deposit  "pay the deposit again" from the cancelled page
 app/(site)/booking/success, /cancelled   Stripe return pages (success double-checks with Stripe)
 app/admin/page.tsx      dashboard;  app/admin/leads/new  phone booking (+ ?enquiry=EQ-… to convert)
 app/admin-manifest.webmanifest   admin-only PWA manifest;  public/sw.js  service worker (push)
+app/admin/calendar, customers(/[id]), invoices(/[id]), export(+ bookings.csv, invoices.csv), more
+app/invoice/[token]     customer's printable invoice (unguessable link, no site chrome/tracking)
+components/invoice-document.tsx  the invoice layout (admin preview + customer page)
 worker.ts               custom Worker entry: OpenNext fetch + scheduled() → /api/cron/<job>
 components/site/        calculator, booking wizard, enquiry form, turnstile, tracking scripts
 components/admin/       nav, thread, ui (status colours)
@@ -295,6 +303,13 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - **2026-10-02 — Deposit failures never lose a booking:** no Stripe key or a Stripe error → booking saved as pay-later + a note on the booking for the owner. Customers can retry from the cancelled page (`/api/public/deposit`).
 - **2026-10-02 — `paidMethod = stripe` once a deposit is paid** (per blueprint) — the remaining balance is tracked on the invoice (Phase 8).
 - **2026-10-02 — Refunds need a confirm click** (`ConfirmButton`), are validated against what's refundable, and use an idempotency key so a double-click can't refund twice.
+- **2026-10-02 — Invoices are GST-inclusive** (prices on the site are what customers pay). When `gstRegistered`, GST = total ÷ 11 and the document says "Tax invoice" with the ABN; otherwise "Invoice" + "No GST has been charged". Owner/accountant should confirm this matches their GST situation.
+- **2026-10-02 — Invoice numbers are claimed with one `UPDATE settings … RETURNING`** (atomic in SQLite/D1). The counter lives in `settings.invoicing.nextInvoiceNumber` but these increments don't create settings-history rows. A failed insert after claiming leaves a gap (rare, harmless).
+- **2026-10-02 — One open invoice per booking:** "Create invoice" returns the existing one unless it's void. Paid invoices can't be voided (refund first). Void invoices stay in the records and export as $0.
+- **2026-10-02 — Customer invoices are a web page, not a PDF file:** `/invoice/<random token>` with a print stylesheet; customers use "Print / Save as PDF". No PDF library on Workers.
+- **2026-10-02 — "My jobs today" includes unassigned jobs** so nothing slips through when nobody has been assigned.
+- **2026-10-02 — CSV exports neutralise formulas** (`= + - @` → leading apostrophe) and use local phone format (`0412 345 678`) so Excel doesn't mangle them; UTF-8 BOM so "—" shows correctly.
+- **2026-10-02 — Mobile admin nav: Home, Leads, Inbox, Calendar, More** (More → Customers, Invoices, Settings, History, Exports). Desktop sidebar shows everything.
 - **2026-10-02 — Prettier ignores `*.md`.** It reflowed the big tables in BLUEPRINT.md into unreadable diffs. Docs are hand-formatted.
 - **2026-10-02 — CI (GitHub Actions) runs typecheck, lint, format, unit tests and the OpenNext build.** Deploying is Workers Builds' job, not CI's.
 
@@ -335,6 +350,9 @@ Newest at the bottom. Format: **date — decision.** Reason.
 **Cron:**
 - Add a job: implement in `lib/cron/jobs.ts` + `JOB_HANDLERS`, map it in `lib/cron/schedule.ts`, add the expression to `wrangler.jsonc` `triggers.crons` (UTC, Perth time in a comment). A test fails if a scheduled job has no handler.
 - Try it locally: `npx wrangler dev --test-scheduled` then `curl "http://localhost:8787/__scheduled?cron=0+18+*+*+*"`; output appears in the wrangler log. Needs `CRON_SECRET` in `.dev.vars`.
+
+**SQL in Drizzle:**
+- In correlated subqueries written with `sql\`…\``, write table aliases by hand (`from bookings bc where bc.booker_customer_id = "customers"."id"`). Interpolating `${bookings.x} = ${customers.id}` rendered unqualified column names and silently compared the inner table with itself (count was always 0 — caught by a test).
 
 **Testing:**
 - DB tests: `const t = await createTestDb()` in `beforeAll` (60 s timeout), `t.reset()` + `t.seed()` in `beforeEach`, `t.dispose()` in `afterAll`. See `lib/audit.test.ts`.
@@ -378,6 +396,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 Newest at the top. One line per task: date, task id, what changed.
 
+- **2026-10-02 — Phase 8 (tasks 8.1–8.7).** Calendar (week view, capacity bars per window, blocked days, service colours), team assignment + "my jobs today" with directions, customers list/search/profile/edit (opt-out toggle), invoices (atomic numbering, GST, deposit deducted, draft/sent/paid/void, email link, printable customer page), invoice + booking CSV exports, mobile "More" menu. 240 tests + 21 E2E passing twice on the Worker runtime.
 - **2026-10-02 — Phase 7 (tasks 7.1–7.6).** Deposits: Stripe fetch client + WebCrypto webhook verification; Checkout from the booking form (fallback to pay-later if unavailable); webhook (completed/async-succeeded/expired/refunded) with idempotent "paid wins" rules and owner SMS; success page (double-checks Stripe, purchase conversion) + cancelled page with "pay again"; admin card-deposit panel with confirmed partial/full refunds; 02:15 Perth safety-net cron. 224 tests + 17 E2E passing twice on the Worker runtime. Real card payments not testable here (no Stripe account/network) — see Section 4 step 10.
 - **2026-10-02 — Phase 6 (tasks 6.1–6.10).** Web Push (WebCrypto, RFC-vector tested) + admin PWA (manifest, service worker, enable-alerts toggle, subscriptions table) and push on new leads; dashboard (new leads, today/tomorrow jobs, avg first response, needs-attention, leads by source); booking detail: schedule with capacity, final price, paid method, update customer from submitted details, send confirmation/reminder/review request, free-text SMS/email replies; inbox reply + convert to booking; phone bookings; inbound SMS webhook (STOP/START, replies logged); unanswered-lead reminder cron (every 5 min in business hours). 212 tests + 16 E2E passing twice on the Worker runtime.
 - **2026-10-02 — Phase 5 (tasks 5.1–5.9).** Admin settings: index, business info (hours, GST, socials, review link, bank details), pricing editor (grid, extras, multipliers, regular hours, add-ons, live old-vs-new preview), booking settings (deposit, windows, capacity, blocked dates, retention), notifications, home/about/SEO/tracking/invoicing; history + restore everywhere; template editor (variables, preview, SMS parts counter, Spam Act checks, send test to me); users (add/edit/deactivate with lockout guards). Custom Worker entry with Cron Triggers → `/api/cron/<job>` (CRON_SECRET): access-note wipe + rate-counter cleanup. Fixed: emails with stray spaces (phone keyboards) were rejected on public forms and the users page. 176 unit/integration tests + 10 E2E (incl. "owner changes a price on their phone and it's live", 3 stable runs on the Worker runtime).

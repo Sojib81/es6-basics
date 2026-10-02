@@ -2,10 +2,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type Item = { href: string; label: string; badge?: number; exact?: boolean };
+type Item = {
+  href: string;
+  label: string;
+  badge?: number;
+  exact?: boolean;
+  mobile?: boolean;
+  desktop?: boolean;
+};
 
 export function AdminNav({ items }: { items: Item[] }) {
   const path = usePathname();
+  const mobileItems = items.filter((i) => i.mobile !== false);
   const active = (i: Item) => path === i.href || (!i.exact && path.startsWith(`${i.href}/`));
   const badge = (n?: number) =>
     n ? (
@@ -24,19 +32,21 @@ export function AdminNav({ items }: { items: Item[] }) {
         className="border-line bg-surface hidden w-52 shrink-0 border-r p-3 md:block"
       >
         <ul className="space-y-1">
-          {items.map((i) => (
-            <li key={i.href}>
-              <Link
-                href={i.href}
-                className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium ${
-                  active(i) ? "bg-brand text-white" : "text-ink hover:bg-white"
-                }`}
-              >
-                {i.label}
-                {badge(i.badge)}
-              </Link>
-            </li>
-          ))}
+          {items
+            .filter((i) => i.desktop !== false)
+            .map((i) => (
+              <li key={i.href}>
+                <Link
+                  href={i.href}
+                  className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium ${
+                    active(i) ? "bg-brand text-white" : "text-ink hover:bg-white"
+                  }`}
+                >
+                  {i.label}
+                  {badge(i.badge)}
+                </Link>
+              </li>
+            ))}
         </ul>
       </nav>
       {/* mobile bottom tabs */}
@@ -46,9 +56,9 @@ export function AdminNav({ items }: { items: Item[] }) {
       >
         <ul
           className="grid"
-          style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
+          style={{ gridTemplateColumns: `repeat(${mobileItems.length}, minmax(0, 1fr))` }}
         >
-          {items.map((i) => (
+          {mobileItems.map((i) => (
             <li key={i.href}>
               <Link
                 href={i.href}

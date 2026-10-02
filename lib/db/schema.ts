@@ -415,3 +415,40 @@ export const pushSubscriptions = sqliteTable(
   },
   (t) => [index("push_admin_idx").on(t.adminEmail)],
 );
+
+export const INVOICE_STATUSES = ["draft", "sent", "paid", "void"] as const;
+
+export const invoices = sqliteTable(
+  "invoices",
+  {
+    id: text("id").primaryKey(),
+    number: text("number").notNull().unique(), // e.g. INV-1001
+    bookingId: text("booking_id").references(() => bookings.id),
+    customerId: text("customer_id")
+      .notNull()
+      .references(() => customers.id),
+    billToName: text("bill_to_name").notNull(),
+    billToEmail: text("bill_to_email"),
+    billToAddress: text("bill_to_address"),
+    lineItems: json<LineItem[]>("line_items").notNull(),
+    subtotalCents: integer("subtotal_cents").notNull(), // excl. GST
+    gstCents: integer("gst_cents").notNull(),
+    totalCents: integer("total_cents").notNull(), // incl. GST
+    depositAppliedCents: integer("deposit_applied_cents").notNull().default(0),
+    amountDueCents: integer("amount_due_cents").notNull(),
+    gstRegistered: bool("gst_registered").notNull(),
+    status: text("status", { enum: INVOICE_STATUSES }).notNull().default("draft"),
+    issuedAt: text("issued_at").notNull(), // YYYY-MM-DD (Perth)
+    dueAt: text("due_at").notNull(), // YYYY-MM-DD (Perth)
+    paidAt: text("paid_at"),
+    paidMethod: text("paid_method", { enum: PAID_METHODS }),
+    publicToken: text("public_token").notNull().unique(),
+    notes: text("notes"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("invoices_status_idx").on(t.status, t.issuedAt),
+    index("invoices_booking_idx").on(t.bookingId),
+  ],
+);

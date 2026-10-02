@@ -34,7 +34,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
             { href: "/admin", label: "Home", exact: true },
             { href: "/admin/leads", label: "Leads", badge: counts.newBookings },
             { href: "/admin/inbox", label: "Inbox", badge: counts.unreadEnquiries },
-            { href: "/admin/settings", label: "Settings" },
+            { href: "/admin/calendar", label: "Calendar" },
+            { href: "/admin/customers", label: "Customers", mobile: false },
+            { href: "/admin/invoices", label: "Invoices", mobile: false },
+            { href: "/admin/settings", label: "Settings", mobile: false },
+            { href: "/admin/more", label: "More", desktop: false },
           ]}
         />
         <main className="min-w-0 flex-1 p-4 pb-24 md:p-6">{children}</main>

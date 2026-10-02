@@ -14,6 +14,8 @@ import {
   bookingNoteAction,
   bookingStatusAction,
   finalPriceAction,
+  assignAction,
+  createInvoiceAction,
   paidAction,
   refundAction,
   quickMessageAction,
@@ -26,6 +28,10 @@ import { requireAdmin } from "@/lib/auth/admin";
 import { getSetting } from "@/lib/data/settings";
 import { getDb } from "@/lib/db/client";
 import { getBookingByRef, getThread } from "@/lib/leads/admin-ops";
+import { getAssignees } from "@/lib/jobs";
+import { listAdminUsers } from "@/lib/users";
+import { invoices as invoicesTable } from "@/lib/db/schema";
+import { desc, eq } from "drizzle-orm";
 import { formatCents } from "@/lib/money";
 import { formatIsoDate, SERVICE_LABELS } from "@/lib/notify/alerts";
 import { formatAuPhone } from "@/lib/phone";
@@ -56,6 +62,15 @@ export default async function BookingDetail(props: PageProps<"/admin/leads/[ref]
   const row = await getBookingByRef(db, ref);
   if (!row) notFound();
   const { booking: b, customer: c } = row;
+  const [assignees, team, bookingInvoices] = await Promise.all([
+    getAssignees(db, b.id),
+    listAdminUsers(db),
+    db
+      .select()
+      .from(invoicesTable)
+      .where(eq(invoicesTable.bookingId, b.id))
+      .orderBy(desc(invoicesTable.createdAt)),
+  ]);
   const [thread, bookingSettings] = await Promise.all([
     getThread(db, { bookingId: b.id }),
     getSetting("booking"),
@@ -382,6 +397,48 @@ export default async function BookingDetail(props: PageProps<"/admin/leads/[ref]
           </label>
           <button className={`${adminButton} bg-brand text-white`}>Save schedule</button>
         </form>
+      </Card>
+
+      <Card title="Team">
+        <form action={assignAction} className="flex flex-wrap items-center gap-3">
+          <input type="hidden" name="ref" value={b.ref} />
+          {team
+            .filter((u) => u.active)
+            .map((u) => (
+              <label key={u.email} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="assignee"
+                  value={u.email}
+                  defaultChecked={assignees.includes(u.email)}
+                  className="h-5 w-5 accent-[var(--color-brand)]"
+                />
+                {u.name}
+              </label>
+            ))}
+          <button className={`${adminButton} border-line border bg-white`}>Save team</button>
+        </form>
+      </Card>
+
+      <Card title="Invoice">
+        {bookingInvoices.length > 0 && (
+          <ul className="mb-3 space-y-1 text-sm">
+            {bookingInvoices.map((inv) => (
+              <li key={inv.id}>
+                <Link href={`/admin/invoices/${inv.id}`} className="text-brand underline">
+                  {inv.number}
+                </Link>{" "}
+                · {formatCents(inv.totalCents)} · {inv.status}
+              </li>
+            ))}
+          </ul>
+        )}
+        {!bookingInvoices.some((i) => i.status !== "void") && (
+          <form action={createInvoiceAction}>
+            <input type="hidden" name="ref" value={b.ref} />
+            <button className={`${adminButton} bg-brand text-white`}>Create invoice</button>
+          </form>
+        )}
       </Card>
 
       <Card title="Message the customer">

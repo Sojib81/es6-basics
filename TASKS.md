@@ -82,16 +82,21 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - [x] 7.6 Tracking: purchase conversion on success page (once per ref)
 
 ## Phase 8 — Job management & invoicing
-- [ ] 8.1 Calendar: week + day views of confirmed jobs, capacity bar per window (units used / max), blocked dates shown
-- [ ] 8.2 "My jobs today" for the signed-in admin (assignments) + assign people on the booking page
-- [ ] 8.3 Customers: list/search, profile (bookings, enquiries, invoices, SMS opt-out, notes), property managers highlighted, repeat customers
-- [ ] 8.4 CSV export of bookings (date range)
-- [ ] 8.5 Invoices: table + migration, sequential numbering (atomic with settings), create from booking (final price, deposit deducted, GST if registered), void, mark paid
-- [ ] 8.6 Customer invoice page /invoice/[token] (print-friendly A4) + send by email (customer_invoice_email)
-- [ ] 8.7 Invoice list (unpaid/overdue/paid this month) + CSV export for BAS
+- [x] 8.1 Calendar: week + day views of confirmed jobs, capacity bar per window (units used / max), blocked dates shown
+- [x] 8.2 "My jobs today" for the signed-in admin (assignments) + assign people on the booking page
+- [x] 8.3 Customers: list/search, profile (bookings, enquiries, invoices, SMS opt-out, notes), property managers highlighted, repeat customers
+- [x] 8.4 CSV export of bookings (date range)
+- [x] 8.5 Invoices: table + migration, sequential numbering (atomic with settings), create from booking (final price, deposit deducted, GST if registered), void, mark paid
+- [x] 8.6 Customer invoice page /invoice/[token] (print-friendly A4) + send by email (customer_invoice_email)
+- [x] 8.7 Invoice list (unpaid/overdue/paid this month) + CSV export for BAS
 
 ## Phase 9 — Light content admin
-- [ ] Break down at start of phase
+- [ ] 9.1 Media library: upload to R2 (images resized client-side to ≤1600 px WebP, PDFs for the PM pack), alt text required, delete (if unused); OG image + logo pickers
+- [ ] 9.2 Services editor (title, summary, body, checklist, not included, price-from override, bookable, capacity weight, order, active, SEO fields)
+- [ ] 9.3 FAQ editor (add/edit/reorder/activate, general or per service)
+- [ ] 9.4 Policies editor
+- [ ] 9.5 Reviews: add real reviews (name, suburb, text, rating, date, source), publish/unpublish
+- [ ] 9.6 History page: audit log with before/after diff, filter by entity/user; restore for settings
 
 ## Phase 10 — Hardening & launch QA
 - [ ] Break down at start of phase
