@@ -472,7 +472,8 @@ ALERTS_MODE=                # send | log   (staging/local: log)
 TURNSTILE_SECRET_KEY=
 RESEND_API_KEY=
 EMAIL_FROM=
-SMS_PROVIDER=               # clicksend | cellcast | twilio
+EMAIL_REPLY_TO=             # business inbox, e.g. hello@domain
+SMS_PROVIDER=               # clicksend | twilio | none (cellcast: add an adapter)
 SMS_API_USERNAME=
 SMS_API_KEY=
 SMS_FROM=                   # number or registered sender ID
@@ -483,6 +484,7 @@ VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=              # mailto:hello@domain
 CF_ACCESS_TEAM_DOMAIN=
 CF_ACCESS_AUD=
+DEV_ADMIN_EMAIL=            # LOCAL ONLY admin login bypass; refused unless APP_ENV=local
 ```
 Bindings (per environment in `wrangler.jsonc` `env.staging` / production): `DB` (D1), `MEDIA` (R2), `RATE_LIMITER` (rate limiting, `period: 60`), OpenNext cache bindings, cron triggers (production only).
 

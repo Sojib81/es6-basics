@@ -1,0 +1,119 @@
+[
+  {
+    "slug": "belmont",
+    "name": "Belmont",
+    "postcode": "6104",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "redcliffe",
+    "name": "Redcliffe",
+    "postcode": "6104",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "rivervale",
+    "name": "Rivervale",
+    "postcode": "6103",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "victoria-park",
+    "name": "Victoria Park",
+    "postcode": "6100",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "east-victoria-park",
+    "name": "East Victoria Park",
+    "postcode": "6101",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "carlisle",
+    "name": "Carlisle",
+    "postcode": "6101",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "cannington",
+    "name": "Cannington",
+    "postcode": "6107",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "kewdale",
+    "name": "Kewdale",
+    "postcode": "6105",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "cloverdale",
+    "name": "Cloverdale",
+    "postcode": "6105",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "burswood",
+    "name": "Burswood",
+    "postcode": "6100",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "bentley",
+    "name": "Bentley",
+    "postcode": "6102",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "lathlain",
+    "name": "Lathlain",
+    "postcode": "6100",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  },
+  {
+    "slug": "ascot",
+    "name": "Ascot",
+    "postcode": "6104",
+    "intro": "",
+    "nearby": [],
+    "featuredServices": ["vacate-cleaning", "carpet-steam-cleaning"],
+    "active": true
+  }
+]

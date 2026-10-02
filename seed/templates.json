@@ -1,0 +1,128 @@
+[
+  {
+    "key": "owner_new_booking_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "NEW BOOKING {ref}\n{service}, {suburb}, {date} {window}\nEst {estimate} | Deposit: {depositStatus}\n{firstName} {customerPhone}\n{adminUrl}",
+    "enabled": true
+  },
+  {
+    "key": "owner_new_booking_email",
+    "channel": "email",
+    "subject": "New booking {ref} — {service}, {suburb}",
+    "body": "New booking request {ref}\n\nService: {service}\nSuburb: {suburb}\nPreferred: {date} {window}\nEstimate: {estimate}\nDeposit: {depositStatus}\n\nCustomer: {name}\nPhone: {customerPhone}\nEmail: {customerEmail}\n\nOpen in admin: {adminUrl}",
+    "enabled": true
+  },
+  {
+    "key": "owner_new_booking_push",
+    "channel": "push",
+    "subject": "New booking {ref}",
+    "body": "{service}, {suburb} — {estimate}. Call {firstName} now.",
+    "enabled": true
+  },
+  {
+    "key": "owner_new_enquiry_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "NEW ENQUIRY {ref}\n{enquiryType}: {firstName} {customerPhone}\n{adminUrl}",
+    "enabled": true
+  },
+  {
+    "key": "owner_new_enquiry_email",
+    "channel": "email",
+    "subject": "New enquiry {ref} — {enquiryType}",
+    "body": "New {enquiryType} enquiry {ref}\n\nName: {name}\nPhone: {customerPhone}\nEmail: {customerEmail}\nSuburb: {suburb}\n\nMessage:\n{message}\n\nOpen in admin: {adminUrl}",
+    "enabled": true
+  },
+  {
+    "key": "owner_new_enquiry_push",
+    "channel": "push",
+    "subject": "New enquiry {ref}",
+    "body": "{enquiryType} from {firstName}. Call back now.",
+    "enabled": true
+  },
+  {
+    "key": "owner_deposit_paid_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "Deposit received {ref}: {deposit}. {adminUrl}",
+    "enabled": true
+  },
+  {
+    "key": "owner_deposit_expired_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "Deposit not completed {ref} — call {firstName} {customerPhone} to confirm. {adminUrl}",
+    "enabled": true
+  },
+  {
+    "key": "owner_unanswered_reminder_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "Reminder: {ref} ({firstName}) hasn't been contacted yet. {adminUrl}",
+    "enabled": true
+  },
+  {
+    "key": "owner_unanswered_reminder_push",
+    "channel": "push",
+    "subject": "Lead waiting: {ref}",
+    "body": "{firstName} hasn't been contacted yet.",
+    "enabled": true
+  },
+  {
+    "key": "customer_booking_received_email",
+    "channel": "email",
+    "subject": "We've got your booking request {ref}",
+    "body": "Hi {firstName},\n\nThanks for your booking request with {businessName}.\n\nReference: {ref}\nService: {service}\nPreferred date: {date} {window}\nEstimated price: {estimate}\n\nYour booking isn't confirmed yet — we'll call you shortly to go over the details and confirm.\n\nQuestions? Call us on {phone}.\n\n{businessName}",
+    "enabled": true
+  },
+  {
+    "key": "customer_booking_received_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "Hi {firstName}, thanks for your booking request with {businessName} (ref {ref}). We'll call you shortly to confirm. {phone}",
+    "enabled": true
+  },
+  {
+    "key": "customer_enquiry_received_email",
+    "channel": "email",
+    "subject": "Thanks for your enquiry ({ref})",
+    "body": "Hi {firstName},\n\nThanks for getting in touch with {businessName}. We've received your enquiry (ref {ref}) and will get back to you shortly.\n\nIf it's urgent, call us on {phone}.\n\n{businessName}",
+    "enabled": true
+  },
+  {
+    "key": "customer_booking_confirmed_email",
+    "channel": "email",
+    "subject": "Your clean is confirmed — {date}",
+    "body": "Hi {firstName},\n\nYour {service} is confirmed for {date}, {window}.\n\nReference: {ref}\nPrice: {estimate}\n\nIf anything changes, call us on {phone}.\n\n{businessName}",
+    "enabled": true
+  },
+  {
+    "key": "customer_booking_confirmed_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "{businessName}: your {service} is confirmed for {date} {window} (ref {ref}). Questions? {phone}",
+    "enabled": true
+  },
+  {
+    "key": "customer_job_reminder_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "{businessName}: reminder, we're booked for your {service} on {date} {window}. Questions? {phone}",
+    "enabled": true
+  },
+  {
+    "key": "customer_review_request_sms",
+    "channel": "sms",
+    "subject": null,
+    "body": "Hi {firstName}, thanks for choosing {businessName}! If you were happy with your clean, a quick Google review would really help us: {reviewUrl}\nReply STOP to opt out.",
+    "enabled": true
+  },
+  {
+    "key": "customer_invoice_email",
+    "channel": "email",
+    "subject": "Invoice {invoiceNumber} from {businessName}",
+    "body": "Hi {firstName},\n\nHere's your invoice {invoiceNumber} for {amountDue}.\n\nView or print it here: {invoiceUrl}\n\nThank you!\n{businessName}",
+    "enabled": true
+  }
+]

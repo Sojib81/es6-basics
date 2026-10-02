@@ -10,7 +10,10 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { getPlatformProxy } from "wrangler";
 import { createDb, type Db } from "./client";
-import { buildSeedSql, type SeedInput } from "./seed-sql";
+import { readSeedFiles } from "./seed-files";
+import { buildSeedStatements, type SeedInput } from "./seed-sql";
+
+export { readSeedFiles };
 
 const ROOT = join(import.meta.dirname, "..", "..");
 
@@ -36,17 +39,6 @@ export type TestDb = {
   dispose: () => Promise<void>;
 };
 
-export function readSeedFiles(): SeedInput {
-  const read = (f: string) => JSON.parse(readFileSync(join(ROOT, "seed", f), "utf8"));
-  let templates: unknown[] = [];
-  try {
-    templates = read("templates.json");
-  } catch {
-    // templates.json is optional
-  }
-  return { settings: read("settings.json"), adminUsers: read("admin-users.json"), templates };
-}
-
 export async function createTestDb(): Promise<TestDb> {
   const proxy = await getPlatformProxy<CloudflareEnv>({
     configPath: join(ROOT, "wrangler.jsonc"),
@@ -66,14 +58,15 @@ export async function createTestDb(): Promise<TestDb> {
 
   const reset = async () => {
     const existing = await tables();
-    await execAll(d1, ["PRAGMA foreign_keys = OFF", ...existing.map((t) => `DROP TABLE "${t}"`)]);
+    await execAll(d1, [
+      "PRAGMA defer_foreign_keys = true",
+      ...existing.map((t) => `DROP TABLE "${t}"`),
+    ]);
     await execAll(d1, migrationStatements());
   };
 
   const seed = async (input: SeedInput = readSeedFiles()) => {
-    const sql = buildSeedSql(input);
-    const statements = sql.split("\n").filter((l) => l.trim() && !l.startsWith("--"));
-    await execAll(d1, statements);
+    await execAll(d1, buildSeedStatements(input));
   };
 
   await reset();

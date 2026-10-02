@@ -1,0 +1,58 @@
+[
+  {
+    "id": "faq-confirm",
+    "question": "Is my booking confirmed when I submit the form?",
+    "answer": "Not yet. We call you to go over the details and confirm the date and price. Nothing is final until that call.",
+    "serviceSlug": null,
+    "sortOrder": 1,
+    "active": true
+  },
+  {
+    "id": "faq-price",
+    "question": "Is the online price final?",
+    "answer": "It's an estimate based on what you tell us. We confirm the final price on our call, and if anything changes we tell you before we start.",
+    "serviceSlug": null,
+    "sortOrder": 2,
+    "active": true
+  },
+  {
+    "id": "faq-home",
+    "question": "Do I need to be home?",
+    "answer": "No. Many customers leave keys with the agent or arrange access another way. We'll sort out access on the phone. Please don't put lockbox or alarm codes in the online form.",
+    "serviceSlug": null,
+    "sortOrder": 3,
+    "active": true
+  },
+  {
+    "id": "faq-equipment",
+    "question": "Do you bring your own products and equipment?",
+    "answer": "Yes, we bring everything we need. You'll just need power and water connected.",
+    "serviceSlug": null,
+    "sortOrder": 4,
+    "active": true
+  },
+  {
+    "id": "faq-vacate-empty",
+    "question": "Should the property be empty?",
+    "answer": "Yes. The clean works best once furniture and belongings are out, so we can reach every surface on the checklist.",
+    "serviceSlug": "vacate-cleaning",
+    "sortOrder": 1,
+    "active": true
+  },
+  {
+    "id": "faq-vacate-reclean",
+    "question": "What if the property manager isn't happy?",
+    "answer": "Let us know as soon as you get the inspection report. If something on our checklist was missed, we'll come back and fix it under our re-clean guarantee.",
+    "serviceSlug": "vacate-cleaning",
+    "sortOrder": 2,
+    "active": true
+  },
+  {
+    "id": "faq-vacate-carpets",
+    "question": "Do I need my carpets cleaned?",
+    "answer": "Check your lease. Many leases ask for professionally cleaned carpets when you move out. You can add carpet steam cleaning to your vacate clean.",
+    "serviceSlug": "vacate-cleaning",
+    "sortOrder": 3,
+    "active": true
+  }
+]

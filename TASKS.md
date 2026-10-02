@@ -24,25 +24,31 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - **Review:** a test page reads every setting from D1 on staging
 
 ## Phase 3 — Lead pipeline MVP → launch ads
-- [ ] 3.1 `lib/pricing.ts` — vacate/pre-sale rules (7.1), integer basis-point maths + tests
-- [ ] 3.2 `lib/pricing.ts` — regular (7.2), carpet-only (7.3), quote-only, add-on service filtering + tests (≥ 18 total)
-- [ ] 3.3 Calculator UI (pricing page + embeddable component), "about X hours" for regular
-- [ ] 3.4 Booking wizard UI: steps 1–5 + 7 ("pay later" only), state kept on Back, URL prefill, non-blocking access-code warning
-- [ ] 3.5 `lib/ratelimit.ts`: binding (3/60 s per IP) + D1 daily caps (phone, IP) + tests
-- [ ] 3.6 Turnstile (client widget + server verify)
-- [ ] 3.7 `/api/public/booking`: full server flow (8), price recalculation + snapshot, customer matching
-- [ ] 3.8 Enquiry/quote form + `/api/public/enquiry`
-- [ ] 3.9 `lib/notify`: template renderer (safe variables), Resend email, `SmsProvider` + one AU adapter, `ALERTS_MODE=log` sandbox; seed owner/customer templates
-- [ ] 3.10 Owner + customer alerts on booking/enquiry (failures logged, never block)
-- [ ] 3.11 Pages: lean home, vacate service landing page, thank-you, privacy/terms/deposit policies (from DB)
-- [ ] 3.12 Tracking tags from settings + UTM/gclid/fbclid capture + once-per-ref conversion guard
-- [ ] 3.13 `lib/auth/access.ts` (Access JWT verify + `admin_users`) + `lib/auth/origin.ts`; admin layout shell
-- [ ] 3.14 `/admin/leads` and `/admin/inbox`: list, detail, status change (audit-logged; "contacted" sets `firstResponseAt`)
-- [ ] 3.15 Playwright: full booking flow on staging (asserts booking in D1 and sandboxed alerts)
+- [x] 3.1 `lib/pricing.ts` — vacate/pre-sale rules (7.1), integer basis-point maths + tests
+- [x] 3.2 `lib/pricing.ts` — regular (7.2), carpet-only (7.3), quote-only, add-on service filtering + tests (≥ 18 total)
+- [x] 3.3 Calculator UI (pricing page + embeddable component), "about X hours" for regular
+- [x] 3.4 Booking wizard UI: steps 1–5 + 7 ("pay later" only), state kept on Back, URL prefill, non-blocking access-code warning
+- [x] 3.5 `lib/ratelimit.ts`: binding (3/60 s per IP) + D1 daily caps (phone, IP) + tests
+- [x] 3.6 Turnstile (client widget + server verify)
+- [x] 3.7 `/api/public/booking`: full server flow (8), price recalculation + snapshot, customer matching
+- [x] 3.8 Enquiry/quote form + `/api/public/enquiry`
+- [x] 3.9 `lib/notify`: template renderer (safe variables), Resend email, `SmsProvider` + one AU adapter, `ALERTS_MODE=log` sandbox; seed owner/customer templates
+- [x] 3.10 Owner + customer alerts on booking/enquiry (failures logged, never block)
+- [x] 3.11 Pages: lean home, vacate service landing page, thank-you, privacy/terms/deposit policies (from DB)
+- [x] 3.12 Tracking tags from settings + UTM/gclid/fbclid capture + once-per-ref conversion guard
+- [x] 3.13 `lib/auth/access.ts` (Access JWT verify + `admin_users`) + `lib/auth/origin.ts`; admin layout shell
+- [x] 3.14 `/admin/leads` and `/admin/inbox`: list, detail, status change (audit-logged; "contacted" sets `firstResponseAt`)
+- [x] 3.15 Playwright: full booking flow on staging (asserts booking in D1 and sandboxed alerts)
 - **Review:** launch checklist (`BLUEPRINT.md` 17) → start ads
 
 ## Phase 4 — Full public site & SEO
-- [ ] Break down at start of phase (`BLUEPRINT.md` 16)
+- [ ] 4.1 Suburb pages from seed (intros, nearby links, indexing rules: ≥150-word unique intro, max 6 indexed at launch) + `/areas`
+- [ ] 4.2 Property managers page (PM pack downloads once media exists; enquiry form)
+- [ ] 4.3 About + FAQ pages
+- [ ] 4.4 JSON-LD (LocalBusiness service-area, Service, FAQPage, BreadcrumbList), `sitemap.ts`, `robots.ts`, OG image
+- [ ] 4.5 Reviews + media tables (schema, seed, loaders); reviews section renders only with real published reviews
+- [ ] 4.6 Hide the sticky mobile CTA bar on /book and /thank-you (it competes with the form)
+- [ ] 4.7 Lighthouse mobile ≥ 90 on home, service, pricing, suburb pages
 
 ## Phase 5 — Admin settings & templates
 - [ ] Break down at start of phase

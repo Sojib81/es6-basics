@@ -1,0 +1,122 @@
+[
+  {
+    "id": "svc-vacate",
+    "slug": "vacate-cleaning",
+    "serviceKey": "vacate",
+    "title": "Vacate & bond cleaning",
+    "summary": "A detailed end-of-lease clean built around the property manager's checklist, so your final inspection goes smoothly.",
+    "body": "Moving out is stressful enough. Our vacate clean follows the checklist property managers use at the final inspection, room by room.\n\n**How it works**\n\n- Get your instant price online\n- Request a date that suits your move\n- We call to confirm, then clean while you get on with the move\n\nIf your property manager asks for anything on our checklist to be touched up, let us know and we'll come back. See our re-clean guarantee for the details.",
+    "checklist": [
+      "Kitchen: benches, cupboards inside and out, splashback, sink and tapware",
+      "Oven, cooktop and rangehood (deep oven clean available as an add-on)",
+      "Bathrooms: shower screens, tiles and grout, toilet, vanity, mirrors, exhaust fan covers",
+      "Bedrooms and living areas: wardrobes inside and out, shelves, skirting boards",
+      "Light switches, power points, door handles and doors",
+      "Internal windows, sills and tracks",
+      "Floors vacuumed and mopped",
+      "Cobwebs removed"
+    ],
+    "notIncluded": [
+      "Rubbish and furniture removal",
+      "Pest control",
+      "Mould treatment beyond surface cleaning",
+      "Repairs, patching or painting"
+    ],
+    "priceFromCents": null,
+    "bookable": true,
+    "capacityWeight": 1,
+    "sortOrder": 1,
+    "active": true,
+    "seoTitle": "Bond & Vacate Cleaning Perth East",
+    "seoDescription": "Agent-ready bond and vacate cleaning in Belmont, Victoria Park, Cannington and nearby. Instant price online; we call to confirm."
+  },
+  {
+    "id": "svc-pre-sale",
+    "slug": "pre-sale-cleaning",
+    "serviceKey": "preSale",
+    "title": "Pre-sale & settlement cleaning",
+    "summary": "Get the home ready for photos, open homes or handover at settlement.",
+    "body": "A thorough clean before your property goes on the market, or before you hand over the keys at settlement. Same detailed checklist as our vacate clean.",
+    "checklist": [
+      "Kitchen, bathrooms and laundry detailed",
+      "Wardrobes, cupboards and shelves wiped",
+      "Skirting boards, switches and doors",
+      "Internal windows, sills and tracks",
+      "Floors vacuumed and mopped"
+    ],
+    "notIncluded": ["Rubbish and furniture removal", "Repairs, patching or painting"],
+    "priceFromCents": null,
+    "bookable": true,
+    "capacityWeight": 1,
+    "sortOrder": 2,
+    "active": true,
+    "seoTitle": "Pre-Sale & Settlement Cleaning Perth",
+    "seoDescription": "Pre-sale and settlement cleaning in Perth's east and south-east. Instant price online."
+  },
+  {
+    "id": "svc-regular",
+    "slug": "regular-cleaning",
+    "serviceKey": "regular",
+    "title": "Regular home cleaning",
+    "summary": "Weekly, fortnightly or one-off home cleaning, priced by the hour.",
+    "body": "Keep on top of the house with a regular clean. We estimate the time from the size of your home, and confirm everything on the phone before the first visit.",
+    "checklist": [
+      "Kitchen benches, sink and appliance fronts",
+      "Bathrooms and toilets",
+      "Dusting of reachable surfaces",
+      "Floors vacuumed and mopped",
+      "Beds made (linen change on request)"
+    ],
+    "notIncluded": ["Inside ovens and fridges (available as add-ons)", "Laundry and ironing"],
+    "priceFromCents": null,
+    "bookable": true,
+    "capacityWeight": 1,
+    "sortOrder": 3,
+    "active": true,
+    "seoTitle": "Regular House Cleaning Perth East",
+    "seoDescription": "Weekly, fortnightly or one-off house cleaning in Perth's east and south-east. Instant estimate online."
+  },
+  {
+    "id": "svc-carpet",
+    "slug": "carpet-steam-cleaning",
+    "serviceKey": "carpetOnly",
+    "title": "Carpet steam cleaning",
+    "summary": "Hot-water extraction carpet cleaning, on its own or added to a vacate clean.",
+    "body": "Steam cleaning lifts dirt and stains from deep in the carpet. Many leases ask for professionally cleaned carpets at the end of the tenancy; add it to your vacate clean or book it on its own.",
+    "checklist": [
+      "Pre-treatment of high-traffic areas",
+      "Hot-water extraction",
+      "Spot treatment of common stains"
+    ],
+    "notIncluded": ["Permanent stains or damage", "Moving heavy furniture"],
+    "priceFromCents": null,
+    "bookable": true,
+    "capacityWeight": 1,
+    "sortOrder": 4,
+    "active": true,
+    "seoTitle": "Carpet Steam Cleaning Perth East",
+    "seoDescription": "Carpet steam cleaning in Perth's east and south-east, standalone or with your bond clean. Instant price online."
+  },
+  {
+    "id": "svc-office",
+    "slug": "office-cleaning",
+    "serviceKey": "office",
+    "title": "Small office & commercial cleaning",
+    "summary": "After-hours cleaning for small offices and commercial spaces, quoted to your needs.",
+    "body": "Every workplace is different, so we quote office and commercial cleaning individually. Tell us about your space and how often you'd like it cleaned, and we'll get back to you with a quote.",
+    "checklist": [
+      "Desks and common areas",
+      "Kitchens and bathrooms",
+      "Bins emptied",
+      "Floors vacuumed and mopped"
+    ],
+    "notIncluded": ["Window cleaning above ground floor", "Waste removal beyond office bins"],
+    "priceFromCents": null,
+    "bookable": false,
+    "capacityWeight": 1,
+    "sortOrder": 5,
+    "active": true,
+    "seoTitle": "Small Office Cleaning Perth East",
+    "seoDescription": "Small office and commercial cleaning in Perth's east and south-east. Request a free quote."
+  }
+]

@@ -1,10 +1,12 @@
 import { MobileCtaBar } from "@/components/site/mobile-cta-bar";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { TrackingScripts } from "@/components/site/tracking-scripts";
 import { getBusinessInfo } from "@/lib/data/business";
+import { getSetting } from "@/lib/data/settings";
 
 export default async function SiteLayout({ children }: LayoutProps<"/">) {
-  const business = await getBusinessInfo();
+  const [business, tracking] = await Promise.all([getBusinessInfo(), getSetting("tracking")]);
 
   return (
     <>
@@ -14,6 +16,7 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
       </main>
       <SiteFooter business={business} />
       <MobileCtaBar phone={business.phone} />
+      <TrackingScripts {...tracking} />
     </>
   );
 }

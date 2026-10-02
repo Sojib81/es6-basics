@@ -123,6 +123,7 @@ export const bookings = sqliteTable(
     bookerRole: text("booker_role", { enum: BOOKER_ROLES }).notNull(),
     siteContactName: text("site_contact_name"),
     siteContactPhone: text("site_contact_phone"),
+    customerDetailsDiffer: bool("customer_details_differ").notNull().default(false),
     pmCustomerId: text("pm_customer_id").references(() => customers.id),
     pmName: text("pm_name"),
     pmAgency: text("pm_agency"),
@@ -221,6 +222,7 @@ export const enquiries = sqliteTable(
     customerId: text("customer_id")
       .notNull()
       .references(() => customers.id),
+    customerDetailsDiffer: bool("customer_details_differ").notNull().default(false),
     type: text("type", { enum: ENQUIRY_TYPES }).notNull(),
     submittedName: text("submitted_name").notNull(),
     email: text("email"),
@@ -315,3 +317,53 @@ export const auditLog = sqliteTable(
     index("audit_created_idx").on(t.createdAt),
   ],
 );
+
+// ---------------------------------------------------------------- content (BLUEPRINT 5.3)
+
+export const services = sqliteTable("services", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  /** Pricing engine key this page books, or null for info-only pages. */
+  serviceKey: text("service_key", { enum: SERVICE_KEYS }),
+  title: text("title").notNull(),
+  summary: text("summary").notNull(),
+  body: text("body").notNull(), // limited markdown
+  heroMediaId: text("hero_media_id"),
+  checklist: json<string[]>("checklist").notNull().default([]),
+  notIncluded: json<string[]>("not_included").notNull().default([]),
+  priceFromCents: integer("price_from_cents"),
+  bookable: bool("bookable").notNull().default(true),
+  capacityWeight: integer("capacity_weight").notNull().default(1),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: bool("active").notNull().default(true),
+  seoTitle: text("seo_title"),
+  seoDescription: text("seo_description"),
+  updatedAt: updatedAt(),
+});
+
+export const faqs = sqliteTable(
+  "faqs",
+  {
+    id: text("id").primaryKey(),
+    question: text("question").notNull(),
+    answer: text("answer").notNull(),
+    serviceSlug: text("service_slug"), // null = general FAQ
+    sortOrder: integer("sort_order").notNull().default(0),
+    active: bool("active").notNull().default(true),
+  },
+  (t) => [index("faqs_service_idx").on(t.serviceSlug, t.sortOrder)],
+);
+
+export const POLICY_SLUGS = [
+  "privacy",
+  "terms",
+  "deposit-and-cancellation",
+  "re-clean-guarantee",
+] as const;
+
+export const policies = sqliteTable("policies", {
+  slug: text("slug", { enum: POLICY_SLUGS }).primaryKey(),
+  title: text("title").notNull(),
+  body: text("body").notNull(), // limited markdown; {businessName} {abn} {phone} {email} filled in
+  updatedAt: updatedAt(),
+});

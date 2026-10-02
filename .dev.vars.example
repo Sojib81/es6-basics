@@ -2,3 +2,6 @@
 NEXTJS_ENV=development
 APP_ENV=local
 ALERTS_MODE=log
+# Local-only admin login bypass (Cloudflare Access isn't in front of localhost). Refused elsewhere.
+DEV_ADMIN_EMAIL=owner@example.com
+# Turnstile: leave unset locally (the form sends Cloudflare's dummy token, accepted offline).
