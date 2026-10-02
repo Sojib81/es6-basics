@@ -29,6 +29,8 @@ export async function POST(request: Request, ctx: RouteContext<"/api/cron/[job]"
       db,
       notify: notifyContextFrom(db, config),
       stripe: stripeConfigFrom(config),
+      d1: env.DB,
+      bucket: env.MEDIA,
     });
     console.log(`cron ${job}: ${summary}`);
     return Response.json({ ok: true, job, summary });

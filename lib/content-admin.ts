@@ -4,7 +4,7 @@
  * Slugs are read-only in the admin (changing them would break links and SEO).
  */
 import { asc, eq } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { auditInsert, saveSettingWithHistory } from "./audit";
 import type { Db } from "./db/client";
 import { newId, nowIso } from "./db/ids";

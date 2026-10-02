@@ -20,7 +20,9 @@ The **living notes** for this codebase. `BLUEPRINT.md` says *what* to build; thi
 | 7 — Deposits | ✅ Done (2026-10-02) — needs Stripe keys + webhook (Section 4) to take real payments |
 | 8 — Job management & invoicing | ✅ Done (2026-10-02) |
 | 9 — Light content admin | ✅ Done (2026-10-02) |
-| 10 — Hardening & launch QA | ⏭ Next |
+| 10 — Hardening & launch QA | ✅ Done (2026-10-02). Next: owner setup (Section 4) + launch runbook (Section 4b) |
+
+Lighthouse mobile, final (Phase 10, Worker runtime, local): /book 92/100/100 (perf/a11y/best-practices, CLS 0), admin pricing editor 97/100/100. Public indexed pages unchanged from Phase 4.
 
 Lighthouse mobile after Phase 4 (Worker runtime, local): home 97/100/100/100, vacate service 96/100/100/100, pricing 99/100/100/100, Belmont suburb 97/100/100/100 (perf/a11y/best-practices/SEO).
 
@@ -248,7 +250,74 @@ Needs a Cloudflare account on **Workers Paid (US$5/month)**.
    - Turn deposits on in Admin → Settings → Bookings, book with "Pay deposit now", pay with card `4242 4242 4242 4242`, check the booking shows "paid", then refund it from the admin.
    - Production: repeat with the **live** key and a live-mode webhook endpoint for the production URL.
 11. **Phone alerts (each owner, each phone):** open the admin on the phone → on iPhone first Share → *Add to Home Screen* and open it from the icon → tap **🔔 Enable alerts on this device**. Test by submitting a booking on staging (staging logs only — test real delivery on production with a test booking).
-12. **Custom domain:** Worker → Settings → Domains & Routes (Phase 10).
+12. **Custom domain:** the domain's DNS must be on Cloudflare (add the site, change nameservers at the registrar). Then Worker `cleaning-site` → Settings → Domains & Routes → Add → Custom domain → `yourdomain.com.au` (and `www.` — add a Redirect Rule `www` → apex). Then:
+   - Set build variable `NEXT_PUBLIC_SITE_URL=https://yourdomain.com.au` and redeploy (canonical URLs, sitemap, links in messages and invoices use it).
+   - Update the Access application domain (step 9), the Stripe webhook URL (step 10) and the SMS inbound URL (step 7) to the new domain.
+   - Turnstile → your site → add the domain to its hostnames.
+
+---
+
+## 4a. Backups & restore
+
+Two layers:
+
+1. **D1 Time Travel (first choice, any point in the last 30 days, built in).** Restores the whole database in place.
+   ```bash
+   npx wrangler d1 time-travel info DB                                          # current bookmark — note it before you restore
+   npx wrangler d1 time-travel restore DB --timestamp=2026-10-11T02:00:00+08:00  # Perth time is fine with the offset
+   ```
+   Staging: add `--env staging`. Restoring is itself undoable: the command prints the bookmark from just before the restore (`--bookmark=<that>`).
+   Everything after the timestamp is lost — check the admin History page first and write down any bookings made since.
+2. **Weekly file backups (long-term fallback).** Sunday 03:00 Perth, every table → `backups/YYYY-MM-DD.json.gz` in the production media bucket; the newest 8 are kept. Access notes are blanked on purpose; rate counters are skipped. The `/media` route never serves them (it only serves files listed in the media table).
+   ```bash
+   npx wrangler r2 object get cleaning-site-media/backups/2026-10-11.json.gz --file backup.json.gz --remote
+   npx tsx scripts/backup-to-sql.ts backup.json.gz > restore.sql
+   npx wrangler d1 create cleaning-site-db-restore          # a NEW, empty database
+   # put the new database_id (and database_name) in the production DB binding in wrangler.jsonc, then:
+   npm run db:migrate:prod
+   npx wrangler d1 execute DB --remote --file restore.sql
+   ```
+   Check the data with `npx wrangler d1 execute DB --remote --command "SELECT count(*) FROM bookings"`, then commit the `wrangler.jsonc` change and deploy. Keep the old database until you're sure. The SQL is `INSERT OR REPLACE`, so it can also top up a Time-Travel-restored database with rows it lost. Media files (photos/PDFs) aren't in the backup — they stay in R2, which is not affected by a D1 restore.
+   Download a backup to your own computer now and then (e.g. monthly) — that copy survives even losing the Cloudflare account.
+
+---
+
+## 4b. Launch runbook
+
+**Deploy order (every release with a schema change):** `npm run check` → `npm run db:migrate:staging` → deploy staging → test on staging → `npm run db:migrate:prod` → merge to `main` (Workers Builds deploys production). Migrations always go **before** the code that needs them, and must be backwards-compatible with the code still running (add columns; drop them a release later).
+
+**Secrets checklist (production, `npx wrangler secret list` to see what's set):**
+- [ ] `TURNSTILE_SECRET_KEY` (+ build var `NEXT_PUBLIC_TURNSTILE_SITE_KEY`)
+- [ ] `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_REPLY_TO` — and the domain verified in Resend (SPF/DKIM DNS records)
+- [ ] `SMS_PROVIDER`, `SMS_API_USERNAME`, `SMS_API_KEY`, `SMS_FROM`, `SMS_INBOUND_SECRET`
+- [ ] `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`
+- [ ] `CRON_SECRET`
+- [ ] `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (+ build var `NEXT_PUBLIC_VAPID_PUBLIC_KEY`)
+- [ ] `STRIPE_SECRET_KEY` (live), `STRIPE_WEBHOOK_SECRET` (live endpoint) — only if deposits are on
+- [ ] Build var `NEXT_PUBLIC_SITE_URL` (the real domain). Tracking IDs (GA4/Google Ads/Meta) are not env vars — Admin → Settings → Tracking.
+- [ ] `ALERTS_MODE` is `send` in production and `log` in staging (`wrangler.jsonc`) — never change staging to `send`.
+- [ ] `DEV_ADMIN_EMAIL` is **not** set anywhere except `.dev.vars` (it's ignored outside `APP_ENV=local` anyway).
+
+**Content checklist:** everything in Section 7 (business details, prices, policies, About text, suburb intros, templates, owner emails/phones, logo).
+
+**Go-live tests (on production, right after the first deploy on the real domain):**
+1. Open the home page on a phone: call button dials, prices show, no console errors.
+2. `/admin` asks for the Access PIN; non-owner emails are refused.
+3. Book a real job yourself (your own phone/email): owner email + SMS + push arrive, customer confirmation email + SMS arrive, booking shows in Admin → Leads with the right source/UTM.
+4. Reply to the customer SMS from the admin; reply "STOP" from the phone → customer shows as opted out.
+5. If deposits are on: pay a $1 test deposit with a real card (set the deposit to $1 temporarily), check it shows "paid", refund it from the admin, put the deposit back.
+6. Send an enquiry from /contact → shows in the Inbox, owner alerts arrive.
+7. Check the sitemap (`/sitemap.xml`) and submit it in Google Search Console; check `/robots.txt`.
+8. Next morning: Worker → Observability → Logs shows the 02:00 Perth jobs ran (`wipe-access-notes`, `cleanup-rate-counters`); after the first Sunday, check R2 `cleaning-site-media/backups/` has a file.
+9. Delete or cancel the test bookings.
+
+**Rollback:**
+- Code: Cloudflare dashboard → Worker → Deployments → pick the previous version → *Rollback* (or `npx wrangler rollback`). Instant; no data change.
+- Settings/content mistake: Admin → History → Undo, or the "Restore previous version" button on that settings page.
+- Data: Section 4a (Time Travel first).
+- A migration can't be rolled back by a code rollback. That's why migrations must be additive (see deploy order).
+
+**Monitoring:** Worker → Observability → Logs shows errors (enable *Workers Logs* once). Failed customer messages show as "failed" in each booking's thread. Check the dashboard's "needs attention" list daily.
 
 ---
 
@@ -322,6 +391,11 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - **2026-10-02 — Reviews:** owners paste real reviews word for word (with source/date); the site shows the section only when ≥1 is published; future dates are refused.
 - **2026-10-02 — Prettier ignores `*.md`.** It reflowed the big tables in BLUEPRINT.md into unreadable diffs. Docs are hand-formatted.
 - **2026-10-02 — CI (GitHub Actions) runs typecheck, lint, format, unit tests and the OpenNext build.** Deploying is Workers Builds' job, not CI's.
+- **2026-10-02 — Security headers in `next.config.ts` `headers()` (`lib/security-headers.ts`), not `proxy.ts`.** CSP allows `'unsafe-inline'` scripts because Next's inline bootstrap scripts and the GA/Meta snippets need it, and nonces would force every page dynamic and complicate caching. `'unsafe-eval'` only in dev. `img-src`/`connect-src https:` so tracking pixels work. `frame-ancestors 'none'` + HSTS + nosniff + strict referrer. A new third-party script host must be added to the CSP list (test covers it).
+- **2026-10-02 — Zod in jitless mode; always import `z` from `@/lib/zod`.** Zod probes `new Function` at load, which the CSP blocks and the browser logs as a violation (Lighthouse best-practices). Jitless gives identical results; speed difference is negligible for our form sizes.
+- **2026-10-02 — Weekly backups go to the MEDIA bucket under `backups/`**, not a separate bucket (one less thing to create/bind). The `/media` route only serves keys listed in the `media` table, so they're never public. D1 Time Travel is the first restore tool; backups are the long-term fallback (Section 4a).
+- **2026-10-02 — Error pages:** `app/global-error.tsx` (whole app), `app/(site)/error.tsx` (public; header/footer with the phone number still render around it), `app/admin/error.tsx`. They never show error details (global-error shows only the digest, for matching to Worker logs).
+- **2026-10-02 — `lib/security-scan.test.ts` statically checks** every admin page calls `requireAdmin()`, every admin server action calls `await requireAdminAction()`, admin API routes check the admin, webhooks check their secret, and production crons match `CRON_JOBS`. If it fails on a new file, fix the file — don't loosen the test.
 
 ---
 
@@ -356,6 +430,13 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - The Tailwind Prettier plugin re-orders class names — when scripting edits, match on the current file text, not what you originally wrote.
 - Seed SQL statements can contain newlines (templates) — split with `buildSeedStatements()`, never by `\n`.
 - In D1, `PRAGMA foreign_keys = OFF` is ignored; use `PRAGMA defer_foreign_keys = true` inside the batch.
+
+**Errors & security (Phase 10):**
+- Next 16 error boundaries receive `{ error, retry }` — call `retry()`, not the old `reset()`.
+- Import Zod from `@/lib/zod`, never `"zod"` (the jitless setting must be loaded first).
+- JSON request bodies are size-checked while streaming (`readJson`, 32 KB) — don't switch to `request.json()` in public routes.
+- Client-only components (like the booking wizard) need a placeholder of about the same height, or Lighthouse CLS jumps (the wizard's was 0.38 before `min-h-[56rem]`).
+- `tsx` scripts in `scripts/` run as CommonJS: no top-level `await` (use `.then()`), and import with relative paths, not `@/`.
 
 **Cron:**
 - Add a job: implement in `lib/cron/jobs.ts` + `JOB_HANDLERS`, map it in `lib/cron/schedule.ts`, add the expression to `wrangler.jsonc` `triggers.crons` (UTC, Perth time in a comment). A test fails if a scheduled job has no handler.
@@ -407,6 +488,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 
 Newest at the top. One line per task: date, task id, what changed.
 
+- **2026-10-02 — Phase 10 (tasks 10.1–10.6).** Security headers + CSP; friendly error pages (site, admin, global); weekly R2 backup cron (Sunday 03:00 Perth, keep 8, access notes blanked) + `scripts/backup-to-sql.ts` restore (round-trip tested on real D1); security review: static auth/secret scan test, streamed JSON size limit; Zod jitless (CSP console violation gone) and /book CLS 0.38 → 0; Lighthouse /book 92/100/100, admin 97/100/100; backups/restore (4a) and launch runbook (4b). 261 tests + 25 E2E passing on the Worker runtime.
 - **2026-10-02 — Phase 9 (tasks 9.1–9.6).** Content admin: services editor (text, checklists, photo, price-from override, capacity weight, SEO), FAQs (add/edit/reorder/hide/delete), policies, real reviews (publish/unpublish), media library on R2 (browser-side WebP resize, PDFs for the PM pack, alt text, use as logo/share image, in-use protection); History page with readable diffs and undo; logo in the site header and service photos. 248 tests + 25 E2E passing three times on the Worker runtime.
 - **2026-10-02 — Phase 8 (tasks 8.1–8.7).** Calendar (week view, capacity bars per window, blocked days, service colours), team assignment + "my jobs today" with directions, customers list/search/profile/edit (opt-out toggle), invoices (atomic numbering, GST, deposit deducted, draft/sent/paid/void, email link, printable customer page), invoice + booking CSV exports, mobile "More" menu. 240 tests + 21 E2E passing twice on the Worker runtime.
 - **2026-10-02 — Phase 7 (tasks 7.1–7.6).** Deposits: Stripe fetch client + WebCrypto webhook verification; Checkout from the booking form (fallback to pay-later if unavailable); webhook (completed/async-succeeded/expired/refunded) with idempotent "paid wins" rules and owner SMS; success page (double-checks Stripe, purchase conversion) + cancelled page with "pay again"; admin card-deposit panel with confirmed partial/full refunds; 02:15 Perth safety-net cron. 224 tests + 17 E2E passing twice on the Worker runtime. Real card payments not testable here (no Stripe account/network) — see Section 4 step 10.

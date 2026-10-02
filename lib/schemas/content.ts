@@ -1,5 +1,5 @@
 /** Zod schemas for content seed files and admin content edits (BLUEPRINT 5.3). */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { POLICY_SLUGS, SERVICE_KEYS } from "@/lib/db/schema";
 
 const slug = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "lower-case words joined by hyphens");

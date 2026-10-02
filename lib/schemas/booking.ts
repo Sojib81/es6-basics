@@ -1,7 +1,7 @@
 /**
  * Public form schemas — shared by the browser (step validation) and the server (final authority).
  */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { BOOKER_ROLES, ENQUIRY_TYPES } from "@/lib/db/schema";
 import { isAuMobile, normalizeAuPhone } from "@/lib/phone";
 

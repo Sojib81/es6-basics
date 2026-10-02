@@ -2,7 +2,7 @@
  * Builds an idempotent SQL seed script from /seed/*.json (BLUEPRINT.md golden rule 2).
  * Every statement is INSERT OR IGNORE / guarded, so re-running never overwrites existing rows.
  */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { ADMIN_ROLES } from "./schema";
 import { faqSchema, policySchema, serviceSchema } from "@/lib/schemas/content";
 import { SETTING_KEYS, settingsSchemas, type SettingKey } from "@/lib/schemas/settings";

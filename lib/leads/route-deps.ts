@@ -21,12 +21,33 @@ export async function publicDepsFromRequest(request: Request): Promise<PublicDep
   };
 }
 
-/** Reads a JSON body (max 32 KB) or returns null. */
+export const MAX_JSON_BYTES = 32_768;
+
+/** Reads a JSON body (max 32 KB, counted as it streams — Content-Length can't be trusted) or returns null. */
 export async function readJson(request: Request): Promise<unknown> {
-  const len = Number(request.headers.get("content-length") ?? 0);
-  if (len > 32_768) return null;
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_JSON_BYTES || !request.body)
+    return null;
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > MAX_JSON_BYTES) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
   try {
-    return await request.json();
+    const bytes = new Uint8Array(size);
+    let o = 0;
+    for (const c of chunks) {
+      bytes.set(c, o);
+      o += c.length;
+    }
+    return JSON.parse(new TextDecoder().decode(bytes));
   } catch {
     return null;
   }

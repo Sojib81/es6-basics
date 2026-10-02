@@ -147,7 +147,7 @@ export function BookingWizard(props: BookingWizardProps) {
   );
   if (!isClient)
     return (
-      <div className="mx-auto max-w-2xl animate-pulse space-y-4" aria-busy="true">
+      <div className="mx-auto min-h-[56rem] max-w-2xl animate-pulse space-y-4" aria-busy="true">
         <div className="bg-line h-2 rounded-full" />
         <div className="bg-surface h-64 rounded-xl" />
       </div>
@@ -296,7 +296,7 @@ function WizardInner(props: BookingWizardProps) {
   const windowLabel = props.timeWindows.find((w) => w.id === draft.timeWindow)?.label ?? "";
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto min-h-[56rem] max-w-2xl">
       <ol className="mb-6 flex gap-1" aria-label="Progress">
         {STEPS.map((s, i) => (
           <li

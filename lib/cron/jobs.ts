@@ -13,11 +13,19 @@ import {
 } from "@/lib/notify/alerts";
 import { sendTemplate, type NotifyContext } from "@/lib/notify/deliver";
 import { depositSafetyNet, type StripeConfig } from "@/lib/leads/deposits";
+import { weeklyBackup } from "./backup";
 import { siteUrl } from "@/lib/config";
 import { formatAuPhone } from "@/lib/phone";
 import { isInQuietHours, isWithinBusinessHours } from "@/lib/time";
 
-export type JobContext = { db: Db; notify: NotifyContext; stripe?: StripeConfig | null };
+export type JobContext = {
+  db: Db;
+  notify: NotifyContext;
+  stripe?: StripeConfig | null;
+  /** Raw D1 + R2 for the backup job. */
+  d1?: D1Database;
+  bucket?: R2Bucket;
+};
 
 /** Deletes access notes on finished jobs older than accessNoteRetentionDays (privacy, golden rule 9). */
 export async function wipeAccessNotes({ db }: JobContext, now: Date = new Date()): Promise<string> {
@@ -168,4 +176,6 @@ export const JOB_HANDLERS: Record<string, (ctx: JobContext, now?: Date) => Promi
   "cleanup-rate-counters": cleanupRateCounters,
   "unanswered-reminders": remindUnanswered,
   "deposit-safety-net": ({ notify, stripe }, now) => depositSafetyNet(notify, stripe ?? null, now),
+  "weekly-backup": async ({ d1, bucket }, now) =>
+    d1 && bucket ? weeklyBackup(d1, bucket, now) : "backup: no D1/R2 binding",
 };

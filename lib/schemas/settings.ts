@@ -2,7 +2,7 @@
  * Zod schemas for every `settings` key (BLUEPRINT.md 5.1 / 5.2).
  * Every read from and write to the `settings` table goes through these.
  */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { WEEKDAYS } from "@/lib/time";
 
 const cents = z.number().int().nonnegative();

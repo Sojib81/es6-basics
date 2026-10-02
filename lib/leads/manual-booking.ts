@@ -3,7 +3,7 @@
  * Same pricing engine and customer matching as the website; date/suburb rules relaxed for staff.
  */
 import { eq } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { auditInsert, currentSettingVersionId, readSetting } from "@/lib/audit";
 import type { Db } from "@/lib/db/client";
 import { nowIso } from "@/lib/db/ids";

@@ -2,7 +2,7 @@
  * Public form pipelines (BLUEPRINT 8). Framework-free so they can be tested against a real D1:
  *   burst limit → Zod → Turnstile → daily caps → create → alerts (in the background) → response.
  */
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { currentSettingVersionId, readSetting } from "@/lib/audit";
 import type { RuntimeConfig } from "@/lib/config";
 import type { Db } from "@/lib/db/client";

@@ -99,9 +99,9 @@ Phases 1–3 are fully broken down; later phases get broken down at the start of
 - [x] 9.6 History page: audit log with before/after diff, filter by entity/user; restore for settings
 
 ## Phase 10 — Hardening & launch QA
-- [ ] 10.1 Security headers (CSP incl. GA/Meta/Turnstile/Stripe, HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy) via proxy/middleware or next.config headers
-- [ ] 10.2 Friendly 500 page (global-error) + error boundaries for admin
-- [ ] 10.3 Weekly backup cron: export all tables to R2 as JSON (keep last 8), excluding access notes; document D1 Time Travel restore
-- [ ] 10.4 Security review pass (auth on every admin route/action, input limits, secrets never logged/exposed)
-- [ ] 10.5 Final Lighthouse audit (public pages) + accessibility checks of admin
-- [ ] 10.6 Launch runbook in DEV_NOTES (deploy order, migrations, secrets checklist, go-live tests, rollback)
+- [x] 10.1 Security headers (CSP incl. GA/Meta/Turnstile/Stripe, HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy) via proxy/middleware or next.config headers
+- [x] 10.2 Friendly 500 page (global-error) + error boundaries for admin
+- [x] 10.3 Weekly backup cron: export all tables to R2 as JSON (keep last 8), excluding access notes; document D1 Time Travel restore
+- [x] 10.4 Security review pass (auth on every admin route/action, input limits, secrets never logged/exposed)
+- [x] 10.5 Final Lighthouse audit (public pages) + accessibility checks of admin
+- [x] 10.6 Launch runbook in DEV_NOTES (deploy order, migrations, secrets checklist, go-live tests, rollback)

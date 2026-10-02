@@ -1,6 +1,6 @@
 "use server";
 import { headers } from "next/headers";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { requireAdminAction } from "@/lib/auth/admin";
 import { getDb } from "@/lib/db/client";
 import { removeSubscription, saveSubscription } from "@/lib/push/admin-push";

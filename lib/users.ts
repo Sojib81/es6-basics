@@ -4,7 +4,7 @@
  * Remember: Cloudflare Access must ALSO allow the email, or they can't reach /admin at all.
  */
 import { and, asc, eq, ne } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { auditInsert } from "./audit";
 import type { Db } from "./db/client";
 import { adminUsers } from "./db/schema";

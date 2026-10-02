@@ -1,5 +1,5 @@
 "use server";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { restoreSetting, saveSettingWithHistory } from "@/lib/audit";
 import { requireAdminAction } from "@/lib/auth/admin";
 import { getDb } from "@/lib/db/client";

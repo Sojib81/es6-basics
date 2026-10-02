@@ -1,6 +1,6 @@
 /** Customer list/profile for the admin (BLUEPRINT 10.4). Edits are owner actions, audited. */
 import { desc, eq, like, or, sql } from "drizzle-orm";
-import { z } from "zod";
+import { z } from "@/lib/zod";
 import { auditInsert } from "./audit";
 import type { Db } from "./db/client";
 import { nowIso } from "./db/ids";

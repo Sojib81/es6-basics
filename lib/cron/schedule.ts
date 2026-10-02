@@ -8,6 +8,8 @@ export const CRON_JOBS: Record<string, string[]> = {
   "0 18 * * *": ["wipe-access-notes", "cleanup-rate-counters"],
   // 02:15 Perth daily — ask Stripe about deposits stuck "pending" (missed webhooks)
   "15 18 * * *": ["deposit-safety-net"],
+  // Sunday 03:00 Perth (Saturday 19:00 UTC) — weekly backup to R2
+  "0 19 * * 6": ["weekly-backup"],
   // Every 5 min, 07:00–17:55 Perth (the job also checks business hours + quiet hours from settings)
   "*/5 23,0-9 * * *": ["unanswered-reminders"],
 };
