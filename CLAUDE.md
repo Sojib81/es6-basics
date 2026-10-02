@@ -2,14 +2,17 @@
 
 Custom website + admin panel for a Perth cleaning business. Fully custom build — no job-management SaaS subscriptions.
 
+@AGENTS.md
+
 ## Before any task
-1. Read `BLUEPRINT.md` (the spec) and follow its **Golden rules** (Section 3).
+1. Read `DEV_NOTES.md` (current status, decisions, gotchas) and `BLUEPRINT.md` (the spec); follow the blueprint's **Golden rules** (Section 3).
 2. Take the next unchecked task in `TASKS.md`. Work phases in order; **stop for review at the end of each phase**.
 3. One task = one small PR-sized change. Tick the task in `TASKS.md` in the same commit.
 
 ## Every change must
-- Pass `typecheck`, `lint`, `test` and `build` before committing.
+- Pass `npm run check` (typecheck, lint, format, unit tests, build) before committing.
 - End with a short summary: what changed, how it was tested, anything left open.
+- Update `DEV_NOTES.md`: a changelog line, plus Decisions/Gotchas/Status when something new was learned or decided.
 
 ## Never
 - Hard-code business data (prices, phone, ABN, templates, tracking IDs) in components.

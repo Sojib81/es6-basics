@@ -1,0 +1,72 @@
+{
+  // Cloudflare Workers config. See DEV_NOTES.md → "Cloudflare setup" for how to create the
+  // D1 databases / R2 buckets and paste their IDs below.
+  // IMPORTANT: bindings are NOT inherited by `env.staging` — every binding must be repeated there.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "cleaning-site",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": { "enabled": true },
+
+  // ---------- production (default environment) ----------
+  "vars": {
+    "APP_ENV": "production",
+    "ALERTS_MODE": "send",
+  },
+  "services": [
+    // Self-reference used by OpenNext caching. Must match this environment's worker name.
+    { "binding": "WORKER_SELF_REFERENCE", "service": "cleaning-site" },
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cleaning-site-db",
+      "database_id": "REPLACE_WITH_PRODUCTION_D1_ID",
+      "migrations_dir": "drizzle",
+    },
+  ],
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "cleaning-site-media" },
+    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "cleaning-site-opennext-cache" },
+  ],
+  "ratelimits": [
+    // Public form APIs: 3 requests / 60 s per key (IP). Binding only supports period 10 or 60.
+    { "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 3, "period": 60 } },
+  ],
+  // Cron triggers (UTC) are added in Phase 5/6 together with the scheduled() handler.
+
+  "env": {
+    // ---------- staging (previews, E2E tests; never sends real alerts) ----------
+    "staging": {
+      "name": "cleaning-site-staging",
+      "vars": {
+        "APP_ENV": "staging",
+        "ALERTS_MODE": "log",
+      },
+      "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "cleaning-site-staging" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "cleaning-site-db-staging",
+          "database_id": "REPLACE_WITH_STAGING_D1_ID",
+          "migrations_dir": "drizzle",
+        },
+      ],
+      "r2_buckets": [
+        { "binding": "MEDIA", "bucket_name": "cleaning-site-media-staging" },
+        {
+          "binding": "NEXT_INC_CACHE_R2_BUCKET",
+          "bucket_name": "cleaning-site-opennext-cache-staging",
+        },
+      ],
+      "ratelimits": [
+        { "name": "RATE_LIMITER", "namespace_id": "1002", "simple": { "limit": 3, "period": 60 } },
+      ],
+    },
+  },
+}

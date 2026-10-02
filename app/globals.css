@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Change brand colours here only ({{PRIMARY_COLOUR}} / {{ACCENT_COLOUR}}).
+ * All text/background pairs below meet WCAG AA (4.5:1) — re-check contrast if you change them.
+ */
+@theme {
+  --color-brand: #0f766e; /* primary, deep teal — white text 5.5:1 */
+  --color-brand-dark: #115e59;
+  --color-brand-light: #f0fdfa;
+  --color-accent: #c2410c; /* CTA buttons — white text 5.2:1 */
+  --color-accent-dark: #9a3412;
+  --color-ink: #0f172a; /* body text */
+  --color-muted: #475569; /* secondary text on white 7.6:1 */
+  --color-line: #e2e8f0;
+  --color-surface: #f8fafc;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Height of the sticky mobile CTA bar — the page adds bottom padding of the same size. */
+  --spacing-mobile-bar: 4.5rem;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}

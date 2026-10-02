@@ -1,0 +1,11 @@
+.next
+.open-next
+.wrangler
+node_modules
+package-lock.json
+cloudflare-env.d.ts
+next-env.d.ts
+drizzle
+playwright-report
+test-results
+*.md

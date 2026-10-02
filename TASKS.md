@@ -1,16 +1,16 @@
 # TASKS
 
-PR-sized tasks for `BLUEPRINT.md`. Tick each one in the commit that completes it. Stop for review at the end of each phase.
+PR-sized tasks for `BLUEPRINT.md`. Tick each one in the commit that completes it, and add a line to the `DEV_NOTES.md` changelog. Stop for review at the end of each phase.
 Phases 1–3 are fully broken down; later phases get broken down at the start of each phase.
 
 ## Phase 1 — Setup
-- [ ] 1.1 Next.js (App Router) + TypeScript strict + Tailwind; ESLint + Prettier; `typecheck`, `lint`, `test`, `build` scripts
-- [ ] 1.2 `@opennextjs/cloudflare` + `wrangler.jsonc` with `nodejs_compat`; `production` and `env.staging` (separate D1, R2, `RATE_LIMITER` with `period: 60`); `.dev.vars.example`, `.env.example`
-- [ ] 1.3 `APP_ENV` / `ALERTS_MODE` config module with Zod validation of env vars at startup
-- [ ] 1.4 `lib/time.ts`: `nowInPerth()`, Perth date helpers, `isWithinBusinessHours()` + Vitest
-- [ ] 1.5 Vitest + Playwright setup (Playwright targets a configurable base URL, default staging)
-- [ ] 1.6 Base public layout: header, footer, sticky mobile "Call / Get price" bar, design tokens (placeholder content via props, no business data)
-- [ ] 1.7 Workers Builds: `main` → production, other branches → staging; deploy docs in `README.md`
+- [x] 1.1 Next.js (App Router) + TypeScript strict + Tailwind; ESLint + Prettier; `typecheck`, `lint`, `test`, `build` scripts
+- [x] 1.2 `@opennextjs/cloudflare` + `wrangler.jsonc` with `nodejs_compat`; `production` and `env.staging` (separate D1, R2, `RATE_LIMITER` with `period: 60`); `.dev.vars.example`, `.env.example`
+- [x] 1.3 `APP_ENV` / `ALERTS_MODE` config module with Zod validation of env vars at startup
+- [x] 1.4 `lib/time.ts`: `nowInPerth()`, Perth date helpers, `isWithinBusinessHours()` + Vitest
+- [x] 1.5 Vitest + Playwright setup (Playwright targets a configurable base URL, default staging)
+- [x] 1.6 Base public layout: header, footer, sticky mobile "Call / Get price" bar, design tokens (placeholder content via props, no business data)
+- [ ] 1.7 Workers Builds: `main` → production, other branches → staging (code + docs done in `DEV_NOTES.md` §4; needs the Cloudflare account to connect)
 - **Review:** live staging + production URLs; Lighthouse ≥ 90 on placeholder home
 
 ## Phase 2 — Core schema & data layer

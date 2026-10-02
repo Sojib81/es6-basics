@@ -1,0 +1,12 @@
+{
+  "businessName": "{{BUSINESS_NAME}}",
+  "tagline": "Bond & vacate cleaning in Perth's east and south-east",
+  "phone": "+61400000000",
+  "publicEmail": "hello@example.com",
+  "abn": "00 000 000 000",
+  "gstRegistered": false,
+  "serviceAreaText": "Belmont, Victoria Park, Cannington and surrounding suburbs",
+  "responsePromise": "We call back within 5 minutes during business hours",
+  "insuranceText": "Fully insured — public liability cover",
+  "googleReviewUrl": ""
+}

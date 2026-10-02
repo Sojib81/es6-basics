@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local development (never commit .dev.vars).
+NEXTJS_ENV=development
+APP_ENV=local
+ALERTS_MODE=log
