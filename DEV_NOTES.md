@@ -436,7 +436,7 @@ Newest at the bottom. Format: **date — decision.** Reason.
 - Import Zod from `@/lib/zod`, never `"zod"` (the jitless setting must be loaded first).
 - JSON request bodies are size-checked while streaming (`readJson`, 32 KB) — don't switch to `request.json()` in public routes.
 - Client-only components (like the booking wizard) need a placeholder of about the same height, or Lighthouse CLS jumps (the wizard's was 0.38 before `min-h-[56rem]`).
-- `tsx` scripts in `scripts/` run as CommonJS: no top-level `await` (use `.then()`), and import with relative paths, not `@/`.
+- `tsx` scripts in `scripts/` run as CommonJS: no top-level `await` (use `.then()`). `@/` imports work (tsx reads tsconfig paths).
 
 **Cron:**
 - Add a job: implement in `lib/cron/jobs.ts` + `JOB_HANDLERS`, map it in `lib/cron/schedule.ts`, add the expression to `wrangler.jsonc` `triggers.crons` (UTC, Perth time in a comment). A test fails if a scheduled job has no handler.
